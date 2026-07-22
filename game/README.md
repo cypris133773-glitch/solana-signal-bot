@@ -15,7 +15,9 @@ works on desktop and mobile.
 
 ## ▶ Play
 
-Just open `index.html` in any modern browser:
+**Online (GitHub Pages):** https://cypris133773-glitch.github.io/solana-signal-bot/
+
+Or just open `index.html` in any modern browser:
 
 ```bash
 # from the repo root
