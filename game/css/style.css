@@ -21,11 +21,9 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--ink);
   background:radial-gradient(circle at 50% 25%,#1a0d33,#080611 75%)}
 
 /* portrait "phone" frame */
-#app{position:relative;width:100%;height:100%;max-width:900px;
+#app{position:relative;width:100%;height:100%;max-width:none;
   display:flex;flex-direction:column;gap:6px;padding:8px;
   background:linear-gradient(180deg,#0d0a1c,#0a0716);overflow:hidden}
-@media(min-width:920px){#app{border-radius:22px;border:1px solid #241a40;
-  box-shadow:0 0 80px rgba(139,47,255,.25)}}
 
 /* ---------- Hexagon logos (pure CSS) ---------- */
 .logo-hex,.logo-pulse,.hexicon,.gemicon{position:relative;display:inline-block;flex-shrink:0}
