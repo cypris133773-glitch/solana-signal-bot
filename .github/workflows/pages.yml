@@ -1,5 +1,8 @@
 name: Deploy game to GitHub Pages
 
+# Note: GitHub Pages must be enabled once at Settings > Pages > Source:
+# "GitHub Actions" before the first successful deploy.
+
 on:
   push:
     branches: [main]
