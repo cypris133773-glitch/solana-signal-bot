@@ -115,6 +115,18 @@ const WEAPONS={
   greencandle:{n:'Green Candle',i:'🕯️',k:'shot',c:'#66ffa0',max:8,base:{dmg:16,cd:.9,spd:520,cnt:2},per:{dmg:9,cnt:.4}},
   bogcall:{n:'Bogdanoff Call',i:'📞',k:'ring',c:'#ffcf33',max:8,base:{dmg:12,cd:2.2,cnt:12,spd:360},per:{dmg:7,cnt:2}},
   boomerbag:{n:'Boomer Bag',i:'🪃',k:'boomerang',c:'#00e5ff',max:8,base:{dmg:20,cd:1.5,spd:430,rad:230,siz:9},per:{dmg:11,rad:16}},
+  blackhole:{n:'Liquidity Black Hole',i:'🕳️',k:'nova',c:'#8b2fff',max:8,base:{dmg:22,cd:3.4,rad:170,kb:-320},per:{dmg:11,rad:30}},
+  diamondsaw:{n:'Diamond Saw',i:'🪚',k:'orbit',c:'#7ad7ff',max:8,base:{cnt:2,rad:70,dmg:12,siz:13,spd:3.4},per:{cnt:.5,dmg:6}},
+  pulsestorm:{n:'PulseChain Storm',i:'⛈️',k:'chain',c:'#00e5ff',max:8,base:{dmg:18,cd:1.3,cnt:5},per:{dmg:10,cnt:1}},
+  coldshards:{n:'Cold Storage Shards',i:'❄️',k:'spread',c:'#7ad7ff',max:8,base:{dmg:12,cd:1.2,cnt:5,spd:440},per:{dmg:7,cnt:1}},
+  halving:{n:'Bitcoin Halving',i:'☄️',k:'lob',c:'#ff8a00',max:8,base:{dmg:40,cd:2.6,rad:110,cnt:1},per:{dmg:20,rad:12}},
+  railwallet:{n:'Sniper Wallet',i:'🎯',k:'beam',c:'#66ffa0',max:8,base:{dmg:34,cd:2.6,siz:14,rad:1300,dur:.35},per:{dmg:18,siz:4}},
+  botarmy:{n:'Bot Army',i:'🤖',k:'homing',c:'#00e5ff',max:8,base:{dmg:14,cd:1.4,cnt:2,spd:300,siz:6},per:{dmg:8,cnt:.6}},
+  fudspikes:{n:'FUD Spikes',i:'🧷',k:'mine',c:'#c0392b',max:8,base:{dmg:26,cd:1.2,rad:60},per:{dmg:14,rad:6}},
+  pumpcannon:{n:'Pump Cannon',i:'🚀',k:'shot',c:'#66ffa0',max:8,base:{dmg:20,cd:.7,spd:560,prc:1,cnt:1},per:{dmg:11,prc:.3,cnt:.3}},
+  vortex:{n:'Liquidity Vortex',i:'🌪️',k:'aura',c:'#8b2fff',max:8,base:{dmg:7,cd:.4,rad:90},per:{dmg:4,rad:12}},
+  quantumfud:{n:'Quantum FUD',i:'🔮',k:'ring',c:'#ff2d9b',max:8,base:{dmg:14,cd:1.8,cnt:10,spd:380},per:{dmg:8,cnt:2}},
+  rekthammer:{n:'REKT Hammer',i:'💢',k:'whip',c:'#ff3b5c',max:8,base:{dmg:34,cd:1.8,rad:120},per:{dmg:16,rad:10}},
 };
 const WKEYS=Object.keys(WEAPONS);
 function wstat(def,level){ const s={}; for(const k in WDEF){ const b=(def.base&&def.base[k]!=null)?def.base[k]:WDEF[k]; s[k]=b+(def.per&&def.per[k]?def.per[k]*(level-1):0); } return s; }
@@ -126,6 +138,12 @@ const EVOS={
   thesun:{req:'power',name:'SUPERNOVA',i:'🌟',mult:{dmg:2.4,rad:1.6}},
   lambo:{req:'projspd',name:'BUGATTI BARRAGE',i:'🚀',mult:{dmg:2.2,cnt:1.6}},
   tshare:{req:'duration',name:'TRIPLE-DIGIT BEAM',i:'⚡',mult:{dmg:2.5,siz:1.5}},
+  diamond:{req:'duration',name:'DIAMOND FORTRESS',i:'💠',mult:{dmg:2.2,rad:1.5}},
+  hodl:{req:'power',name:'INFINITY HAMMER',i:'🔨',mult:{dmg:2.4,rad:1.3}},
+  pulsewave:{req:'area',name:'TSUNAMI WAVE',i:'🌊',mult:{dmg:2.3,rad:1.5}},
+  gasmine:{req:'amount',name:'MEV SANDWICH',i:'🥪',mult:{dmg:2.4,rad:1.4}},
+  lasereyes:{req:'crit',name:'GIGACHAD GAZE',i:'👁️',mult:{dmg:2.6,siz:1.4}},
+  blackhole:{req:'area',name:'SINGULARITY',i:'🌀',mult:{dmg:2.6,rad:1.6}},
 };
 
 /* ---------- PASSIVES & TALENTS ---------- */
@@ -150,6 +168,11 @@ const PASSIVES={
   thorns:{n:'Toxic Maxi',i:'☣️',d:'Reflect 20% contact damage',max:5,r:'rare'},
   revive:{n:'Second Sacrifice',i:'🔁',d:'Revive once at 50% HP',max:2,r:'legend'},
   greeddmg:{n:'Berserk Degen',i:'😤',d:'+25% damage below 40% HP',max:3,r:'epic'},
+  executioner:{n:'Executioner',i:'🪓',d:'Instantly kill weak (non-boss) enemies',max:5,r:'epic'},
+  glasscannon:{n:'Glass Cannon',i:'🔫',d:'+25% damage, -12% Max HP',max:3,r:'epic'},
+  gigachad:{n:'Gigachad',i:'💪',d:'+8% damage, attack speed & area',max:4,r:'legend'},
+  vamplord:{n:'Vampire Lord',i:'🧛',d:'Lifeleech +3%',max:4,r:'epic'},
+  overclock:{n:'Overclock',i:'⚙️',d:'+8% Attack Speed',max:5,r:'rare'},
 };
 const PKEYS=Object.keys(PASSIVES);
 const RARITY_W={common:100,rare:34,epic:12,legend:4};
@@ -169,6 +192,10 @@ const ENEMIES={
   exploder:{n:'Ponzi Bomb',hp:24,spd:96,dmg:0,r:16,xp:2,b:'exploder',sp:'bomb',c:'#ff3b5c'},
   influencer:{n:'Shill Influencer',hp:130,spd:40,dmg:10,r:24,xp:6,b:'summoner',sp:'blob',c:'#ff2d9b'},
   whalee:{n:'Dump Whale',hp:230,spd:34,dmg:20,r:30,xp:9,b:'chase',sp:'bear',c:'#3fa9ff'},
+  botswarm:{n:'Trading Bot',hp:7,spd:150,dmg:4,r:10,xp:1,b:'chase',sp:'jeet',c:'#00e5ff'},
+  flashloan:{n:'Flash Loaner',hp:40,spd:60,dmg:12,r:16,xp:3,b:'blink',sp:'blob',c:'#00e5ff'},
+  coper:{n:'Copetrader',hp:82,spd:44,dmg:10,r:20,xp:5,b:'healer',sp:'blob',c:'#66ffa0'},
+  coldwallet:{n:'Cold Wallet',hp:170,spd:38,dmg:14,r:24,xp:6,b:'chase',sp:'golem',c:'#7ad7ff'},
 };
 const EKEYS=Object.keys(ENEMIES);
 
@@ -180,11 +207,15 @@ const BOSSES=[
   {n:'The IRS Taxman',emoji:'🧾',sp:'bossblob',hp:3400,spd:36,dmg:25,r:64,atk:['spiral','radial'],summon:'taxman',c:'#3a6ea5'},
   {n:'BTC Maxi Dragon',emoji:'🐲',sp:'bossbear',hp:4200,spd:44,dmg:28,r:72,atk:['charge','radial'],summon:'maxi',c:'#ff8a00'},
   {n:'The Rug Puller',emoji:'🧹',sp:'bossblob',hp:3800,spd:40,dmg:26,r:66,atk:['pull','summon'],summon:'jeet',c:'#8b2fff'},
+  {n:'LUNA / Do Kwon',emoji:'🌙',sp:'bossblob',hp:3600,spd:38,dmg:26,r:66,atk:['spiral','summon'],summon:'jeet',c:'#f6c343'},
+  {n:'CZ / Binance',emoji:'🅱️',sp:'bossblob',hp:4000,spd:34,dmg:26,r:70,atk:['radial','summon'],summon:'scammer',c:'#f0b90b'},
+  {n:'Saylor Laser',emoji:'🕶️',sp:'bossbear',hp:4400,spd:46,dmg:30,r:70,atk:['charge','spiral'],summon:'maxi',c:'#ff8a00'},
+  {n:'The Money Printer',emoji:'🖨️',sp:'bossblob',hp:4200,spd:32,dmg:24,r:72,atk:['summon','radial'],summon:'taxman',c:'#66ffa0'},
 ];
 
 // ---------- funny text ----------
-const QUIPS=['NGMI','have fun staying poor','few understand','ser pls','dump it','sell sell','FUD!','rugged','ratio','cope','seethe','not gonna make it','down bad','wen moon','ngmi ser'];
-const KILL_QUIPS=['WAGMI','stay poor','rekt','get staked','number go up','few','bonk','+1 HEX','GG','ez'];
+const QUIPS=['NGMI','have fun staying poor','few understand','ser pls','dump it','sell sell','FUD!','rugged','ratio','cope','seethe','not gonna make it','down bad','wen moon','ngmi ser','buy high sell low','this is a wendys','my life savings','trust me bro','safe and effective','5 mil eoy','still early','ponzi','wen lambo','delist him'];
+const KILL_QUIPS=['WAGMI','stay poor','rekt','get staked','number go up','few','bonk','+1 HEX','GG','ez','skill issue','ratioed','staked','liquidated','have fun'];
 const DEATH_FLAVORS=['The bears got your bags.','Paper-handed at the bottom.','You should have kept staking.','FUD is a hell of a drug.','Rugged by the market.','Not your keys, not your survival.','Sold. As always. Ngmi.','The SEC finally got you.'];
 const LEVEL_FLAVORS=['Longer pays better.','Number go up.','Diamond hands activated.','Stay based.','This is the way.','WAGMI, ser.'];
 
@@ -209,25 +240,26 @@ function newRun(){
   recalc(); for(let i=0;i<7;i++) spawnEnemy('fud');
 }
 function recalc(){ const p=player,P=p.passives;
-  p.maxHp=120+(P.maxhp||0)*25;
+  p.maxHp=(120+(P.maxhp||0)*25)*(1-Math.min(0.45,(P.glasscannon||0)*0.12));
   p.speed=p.baseSpeed*(1+(P.speed||0)*0.10);
   p.magnetMul=1+(P.magnet||0)*0.28;
-  p.dmgMul=1+(P.power||0)*0.12;
-  p.hasteMul=1+(P.haste||0)*0.09;
+  p.dmgMul=1+(P.power||0)*0.12+(P.gigachad||0)*0.08+(P.glasscannon||0)*0.25;
+  p.hasteMul=1+(P.haste||0)*0.09+(P.gigachad||0)*0.08+(P.overclock||0)*0.08;
   p.regen=(P.regen||0)*0.7;
   p.xpMul=1+(P.greed||0)*0.18;
-  p.areaMul=1+(P.area||0)*0.12;
+  p.areaMul=1+(P.area||0)*0.12+(P.gigachad||0)*0.08;
   p.extraProj=(P.amount||0);
   p.projSpeedMul=1+(P.projspd||0)*0.16;
   p.durMul=1+(P.duration||0)*0.16;
   p.armor=(P.armor||0)*2;
   p.crit=0.05+(P.crit||0)*0.07;
   p.critMul=2+(P.critdmg||0)*0.30;
-  p.leech=(P.leech||0)*0.025;
+  p.leech=(P.leech||0)*0.025+(P.vamplord||0)*0.03;
   p.luck=(P.luck||0)*0.10;
   p.dodge=(P.dodge||0)*0.04;
   p.thorns=(P.thorns||0)*0.20;
   p.berserk=(P.greeddmg||0)*0.25;
+  p.execute=(P.executioner||0)*0.04;
 }
 
 // ---------- input ----------
@@ -287,6 +319,7 @@ function updateSpawning(dt){
   bossTimer-=dt; if(bossTimer<=0 && !boss){ bossTimer=BOSS_INTERVAL*Math.max(0.6,1-bossCount*0.03); spawnBoss(); }
 }
 function rollEnemyKind(){ const t=time,r=Math.random();
+  if(t>200&&Math.random()<0.14) return pick(t>360?['flashloan','coper','coldwallet','botswarm']:['flashloan','botswarm','coper']);
   if(t>420) return r<.1?'whalee':r<.24?'sec':r<.36?'influencer':r<.5?'taxman':r<.62?'exploder':r<.74?'scammer':r<.84?'maxi':r<.92?'bear':'shorter';
   if(t>270) return r<.16?'sec':r<.3?'taxman':r<.44?'scammer':r<.58?'exploder':r<.7?'maxi':r<.82?'bear':r<.92?'shorter':'nocoiner';
   if(t>150) return r<.16?'taxman':r<.32?'scammer':r<.48?'maxi':r<.64?'bear':r<.78?'shorter':r<.9?'nocoiner':'exploder';
@@ -405,6 +438,7 @@ function updateChains(dt){ for(let i=chains.length-1;i>=0;i--){ chains[i].t-=dt;
 // ---------- damage / kill ----------
 function damageEnemy(e,dmg,fx,fy,knock,crit){ e.hp-=dmg;
   if(player.leech){ heal(dmg*player.leech); }
+  if(player.execute&&!e.boss&&e.hp>0&&e.hp<e.maxHp*player.execute){ e.hp=0; floater('EXECUTE',fx,fy-8,'#ff3b5c',true); }
   e.hitFlash=0.1;
   if(Math.random()<0.28) floater(pick(['-HEX!','-PLS!']),fx,fy,Math.random()<0.5?'#ff2d9b':'#00e5ff',true);
   else floater((crit?'✷':'')+'-'+fmtBig(dmg*DMG_SCALE),fx,fy,crit?'#ffcf33':(e.boss?'#ffd6ec':'#fff'),crit);
@@ -448,6 +482,8 @@ function updateEnemies(dt){ const p=player;
     else if(e.b==='dasher'){ e.t1-=dt; if(e.t1<=0){e.t1=rand(1.6,2.6); e.dash=0.35; e.dvx=ax;e.dvy=ay;} if(e.dash>0){e.dash-=dt; sp=e.spd*3.4; sx=e.dvx;sy=e.dvy;} }
     else if(e.b==='shooter'){ e.t1-=dt; if(dd<520&&e.t1<=0){ e.t1=rand(1.6,2.4); const a=Math.atan2(ay,ax); ebullets.push({x:e.x,y:e.y,vx:Math.cos(a)*220,vy:Math.sin(a)*220,r:7,dmg:e.dmg*0.8,life:3,color:'#ff5b8a'}); } if(dd<260){sp=-e.spd*0.5;} }
     else if(e.b==='summoner'){ e.t1-=dt; if(e.t1<=0){e.t1=rand(3,4.5); for(let i=0;i<3;i++)spawnEnemy('jeet',e.x+rand(-30,30),e.y+rand(-30,30));} }
+    else if(e.b==='blink'){ e.t1-=dt; if(e.t1<=0){e.t1=rand(2,3.2); const bd=clamp(dd,120,320); e.x=clamp(p.x-ax*bd,0,WORLD.w); e.y=clamp(p.y-ay*bd,0,WORLD.h); burst(e.x,e.y,e.c,8); } }
+    else if(e.b==='healer'){ e.t1-=dt; if(e.t1<=0){e.t1=rand(2.6,3.6); let did=false; for(const o of enemies){ if(o!==e&&o.hp<o.maxHp&&dist2(e.x,e.y,o.x,o.y)<170*170){ o.hp=Math.min(o.maxHp,o.hp+o.maxHp*0.15); did=true; } } if(did)floater('+cope',e.x,e.y-e.r-4,'#66ffa0',false); } }
     else if(e.b==='exploder'){ sp=e.spd; if(dd<e.r+p.r+4){ killEnemy(e); continue; } }
     else if(e.b==='boss'){ updateBoss(e,dt,ax,ay,dd); sx=ax;sy=ay; sp=e.charge>0?e.spd*3.2:e.spd; }
     e.x+=sx*sp*dt+e.knock.x*dt; e.y+=sy*sp*dt+e.knock.y*dt; e.knock.x*=0.86; e.knock.y*=0.86;
