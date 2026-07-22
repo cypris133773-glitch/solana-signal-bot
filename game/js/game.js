@@ -667,23 +667,6 @@ function drawAvatar(){
   g.fillStyle='#171622'; g.beginPath(); g.roundRect(14,40,44,34,10); g.fill();
   g.save(); g.translate(36,58); g.fillStyle='#ffcf33'; hexPath(g,9); g.fill(); g.fillStyle='#ff2d9b'; hexPath(g,4.5); g.fill(); g.restore();
 }
-function drawPet(){
-  const c=document.getElementById('pet'); if(!c) return; const g=c.getContext('2d');
-  g.clearRect(0,0,52,52); g.fillStyle='#120a24'; g.fillRect(0,0,52,52);
-  g.translate(26,28);
-  // ears
-  g.fillStyle='#8a5a2e'; g.beginPath(); g.ellipse(-15,-6,7,12,-0.4,0,TAU); g.ellipse(15,-6,7,12,0.4,0,TAU); g.fill();
-  // head
-  g.fillStyle='#b07a3c'; g.beginPath(); g.arc(0,0,16,0,TAU); g.fill();
-  g.fillStyle='#e6c79a'; g.beginPath(); g.arc(0,6,9,0,TAU); g.fill();
-  g.fillStyle='#000'; g.beginPath(); g.arc(0,3,3,0,TAU); g.fill();
-  // heart glasses
-  g.fillStyle='#ff2d9b'; g.save(); g.translate(-7,-3); g.scale(0.32,0.32); heartPath(g,10); g.fill(); g.restore();
-  g.save(); g.translate(7,-3); g.scale(0.32,0.32); heartPath(g,10); g.fill(); g.restore();
-  // tongue
-  g.fillStyle='#ff5b8a'; g.beginPath(); g.roundRect(-3,9,6,7,3); g.fill();
-}
-
 // ---------- Flow ----------
 function show(id){ document.getElementById(id).classList.remove('hidden'); }
 function hide(id){ document.getElementById(id).classList.add('hidden'); }
@@ -693,7 +676,7 @@ function startGame(){
   resize();
   newRun();
   hide('start-screen'); hide('gameover-screen'); hide('win-screen');
-  drawAvatar(); drawPet(); updateSkillList(); updateHud();
+  drawAvatar(); updateSkillList(); updateHud();
   state='playing'; lastTs=performance.now();
 }
 const GAMEOVER_FLAVORS=['The bears got your bags.','Paper hands claimed another.','You should have kept staking.',
