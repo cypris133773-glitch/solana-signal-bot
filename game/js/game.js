@@ -351,14 +351,18 @@ function pEnd(){ joyOrigin=null;touchId=null;move.x=0;move.y=0; joyEl.classList.
 canvas.addEventListener('touchstart',e=>{const t=e.changedTouches[0];pStart(t.clientX,t.clientY,t.identifier);},{passive:true});
 canvas.addEventListener('touchmove',e=>{for(const t of e.changedTouches)if(t.identifier===touchId)pMove(t.clientX,t.clientY);},{passive:true});
 canvas.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===touchId)pEnd();},{passive:true});
-let mouseDown=false;
-canvas.addEventListener('mousedown',e=>{mouseDown=true;pStart(e.clientX,e.clientY,'m');});
-window.addEventListener('mousemove',e=>{if(mouseDown)pMove(e.clientX,e.clientY);});
-window.addEventListener('mouseup',()=>{if(mouseDown){mouseDown=false;pEnd();}});
+// desktop mouse: hold the button to steer toward the cursor
+let mouseHeld=false, mX=0, mY=0;
+canvas.addEventListener('mousedown',e=>{ if(e.button===0){ mouseHeld=true; mX=e.clientX; mY=e.clientY; } });
+window.addEventListener('mousemove',e=>{ mX=e.clientX; mY=e.clientY; });
+window.addEventListener('mouseup',e=>{ if(e.button===0) mouseHeld=false; });
+window.addEventListener('blur',()=>{ mouseHeld=false; });
 function readInput(){ let x=0,y=0;
   if(keys['w']||keys['arrowup'])y-=1; if(keys['s']||keys['arrowdown'])y+=1;
   if(keys['a']||keys['arrowleft'])x-=1; if(keys['d']||keys['arrowright'])x+=1;
-  if(x||y){const m=Math.hypot(x,y);return{x:x/m,y:y/m};} return{x:move.x,y:move.y}; }
+  if(x||y){const m=Math.hypot(x,y);return{x:x/m,y:y/m};}
+  if(mouseHeld && state==='playing'){ const r=paRect(); const dx=(mX-r.left)-(player.x-cam.x), dy=(mY-r.top)-(player.y-cam.y); const m=Math.hypot(dx,dy); if(m>8)return{x:dx/m,y:dy/m}; return{x:0,y:0}; }
+  return{x:move.x,y:move.y}; }
 
 // ---------- spawning (endless) ----------
 function hpScale(){ return 1+time*0.03+Math.pow(time/60,1.7)*0.12; }
