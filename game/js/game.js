@@ -298,7 +298,7 @@ function spawnEnemy(kind,ox,oy,scaleMul){ if(enemies.length>230)return;
   if(ox!==undefined){x=ox;y=oy;} else{ const a=rand(0,TAU),d=Math.min(Math.max(W,H)*0.6,560)+rand(0,120);
     x=clamp(player.x+Math.cos(a)*d,20,WORLD.w-20); y=clamp(player.y+Math.sin(a)*d,20,WORLD.h-20); }
   const hs=hpScale()*(scaleMul||1), ds=dmgScale();
-  enemies.push({kind,x,y,r:def.r,hp:def.hp*hs,maxHp:def.hp*hs,spd:def.spd*(1+time*0.004),dmg:def.dmg*ds,xp:def.xp,
+  enemies.push({kind,x,y,r:def.r,hp:def.hp*hs,maxHp:def.hp*hs,spd:def.spd*0.85*(1+time*0.004),dmg:def.dmg*ds,xp:def.xp,
     b:def.b,sp:def.sp,c:def.c,hitFlash:0,knock:{x:0,y:0},boss:false,wob:rand(0,TAU),t1:rand(0,2),t2:0,def});
 }
 function spawnBoss(){ const b=BOSSES[bossCount%BOSSES.length]; const loop=Math.floor(bossCount/BOSSES.length);
