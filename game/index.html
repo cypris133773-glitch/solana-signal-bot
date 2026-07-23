@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>SURVIVOR.io HEX EDITION — Richard Heart vs The Bear Market</title>
 <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -25,102 +28,55 @@
     </div>
 
     <div class="wave-block">
-      <div class="wave-label">WAVE <span id="wave-num">1</span></div>
+      <div class="wave-label">WAVE <span id="wave-num">1</span> · <span id="threat">warmup</span></div>
       <div class="wave-timer" id="timer">00:00</div>
-      <div class="xp-strip"><div id="xp-fill"></div><span class="xp-skull">☠</span></div>
+      <div class="xp-strip"><div id="xp-fill"></div></div>
     </div>
 
-    <div class="currencies">
-      <div class="cur"><span class="hexicon gold"></span><span id="cur-hex">0</span></div>
-      <div class="cur"><span class="gemicon"></span><span id="cur-gem">0</span></div>
-      <div class="cur"><span class="hexicon pink"></span><span id="cur-bag">0</span></div>
+    <div class="topright">
+      <div class="currencies">
+        <div class="cur kills"><span class="ci">☠</span><span id="cur-kills">0</span></div>
+        <div class="cur"><span class="hexicon gold"></span><span id="cur-hex">0</span></div>
+        <div class="cur"><span class="gemicon"></span><span id="cur-gem">0</span></div>
+      </div>
+      <div class="topbtns">
+        <button id="mute-btn" title="Sound">♪</button>
+        <button id="pause-btn" title="Pause">II</button>
+      </div>
     </div>
   </header>
 
   <!-- ===== MIDDLE ===== -->
   <div id="mid">
-
-    <!-- LEFT PANEL -->
     <aside id="left-panel">
-      <div class="brand-mini hex">
-        <span class="logo-hex"></span>
-        <div><div class="bm-title">HEX</div><div class="bm-sub">LONGER PAYS BETTER</div></div>
-      </div>
-
       <div class="side-box">
         <div class="box-title">STATS</div>
         <div class="stat-row"><span class="si">❤</span><span class="sn">HP</span><span class="sv" id="st-hp">100</span></div>
         <div class="stat-row"><span class="si">⚔</span><span class="sn">ATK</span><span class="sv" id="st-atk">100</span></div>
         <div class="stat-row"><span class="si">🛡</span><span class="sn">DEF</span><span class="sv" id="st-def">0</span></div>
-        <div class="stat-row"><span class="si">🍀</span><span class="sn">LUCK</span><span class="sv" id="st-luck">0%</span></div>
+        <div class="stat-row"><span class="si">✷</span><span class="sn">CRIT</span><span class="sv" id="st-crit">5%</span></div>
+        <div class="stat-row"><span class="si">🩸</span><span class="sn">LEECH</span><span class="sv" id="st-leech">0%</span></div>
         <div class="stat-row"><span class="si">💨</span><span class="sn">SPD</span><span class="sv" id="st-spd">+0%</span></div>
       </div>
-
-      <div class="side-box">
-        <div class="box-title">ACTIVE SKILL</div>
-        <div id="skill-list"></div>
+      <div class="side-box grow">
+        <div class="box-title">TALENTS</div>
+        <div id="talent-list" class="chips"></div>
       </div>
-
-      <button id="pause-btn">II</button>
     </aside>
 
-    <!-- PLAY AREA -->
     <main id="play-area">
       <canvas id="game"></canvas>
       <div id="joystick" class="hidden"><div id="joystick-knob"></div></div>
-      <div id="dpad">
-        <span class="d up">▲</span><span class="d down">▼</span>
-        <span class="d left">◀</span><span class="d right">▶</span>
-        <span class="d mid"></span>
-      </div>
+      <div id="combo" class="hidden"></div>
     </main>
 
-    <!-- RIGHT PANEL -->
     <aside id="right-panel">
-      <div class="brand-mini pulse">
-        <span class="logo-pulse"></span>
-        <div><div class="bm-title">PULSECHAIN</div><div class="bm-sub">THE BETTER CHAIN</div></div>
-      </div>
-
-      <div class="side-box">
-        <div class="box-title">POWER-UPS</div>
-        <div class="grid3">
-          <div class="cell">🧲</div><div class="cell">🔋</div><div class="cell">❤</div>
-          <div class="cell">🚀</div><div class="cell logo-cell"><span class="logo-pulse sm"></span></div><div class="cell">🎰</div>
-        </div>
-      </div>
-
-      <div class="side-box">
-        <div class="box-title">EQUIPMENT</div>
-        <div class="grid3">
-          <div class="cell eq">🔨<span class="lv">1</span></div><div class="cell eq">👕<span class="lv">1</span></div><div class="cell eq">💍<span class="lv">1</span></div>
-          <div class="cell eq">🥾<span class="lv">1</span></div><div class="cell eq">🧤<span class="lv">1</span></div><div class="cell eq">📿<span class="lv">1</span></div>
-        </div>
-      </div>
-
-      <div class="side-box pet-box">
-        <div class="box-title">PET</div>
-        <div class="pet"><canvas id="pet" width="52" height="52"></canvas>
-          <div><div class="pet-name">HEX PUP</div><div class="pet-lv">Lv.1</div></div>
-        </div>
+      <div class="side-box grow">
+        <div class="box-title">ARSENAL</div>
+        <div id="skill-list"></div>
       </div>
     </aside>
   </div>
-
-  <!-- ===== BRAND BAR ===== -->
-  <div id="brandbar">
-    <span class="logo-hex big"></span>
-    <div class="brandtext"><div class="b1">SURVIVOR<span class="io">.io</span></div><div class="b2">HEX EDITION</div></div>
-    <span class="logo-pulse big"></span>
-  </div>
-
-  <!-- ===== NAV BAR ===== -->
-  <nav id="navbar">
-    <button class="nav" data-nav="stake">🔒<span>STAKE</span></button>
-    <button class="nav" data-nav="daily">📅<span>DAILY</span></button>
-    <button class="nav" data-nav="board">🏆<span>RANKS</span></button>
-    <button class="nav" data-nav="shop">🛒<span>SHOP</span></button>
-  </nav>
 </div>
 
 <!-- ===== OVERLAYS ===== -->
@@ -130,20 +86,22 @@
     <div class="logo">SURVIVOR<span class="io">.io</span></div>
     <div class="subtitle">HEX EDITION · Richard Heart vs The Bear Market</div>
     <p class="lore">
-      The FUDsters, paper hands and regulators are coming for your bags.
-      Stake your HEX, fork PulseChain, and survive the crypto winter.
-      Level up, pick your skills, and <em>never sell</em>.
+      Endless crypto winter. Infinite FUD. Stake your HEX, fork PulseChain, and dance
+      through the horde. It gets harder <em>forever</em>. Pick from <em>40+ attacks</em>, stack talents,
+      leech life, evolve your build — and <em>never sell</em>.
     </p>
     <button id="start-btn" class="btn-primary">▶ START RUN</button>
     <div class="how-to"><span class="k">WASD</span>/<span class="k">Arrows</span> or drag to move · you auto-attack · grab <span class="hex-gem">⬡</span> to level up</div>
+    <div class="disclaimer">Parody fan game for entertainment. Not affiliated with, endorsed by, or representing Richard Heart, HEX, PulseChain or PulseX. Not financial advice.</div>
   </div>
 </div>
 
 <div id="levelup-screen" class="overlay hidden">
-  <div class="panel">
-    <div class="levelup-title">⚡ LEVEL UP</div>
-    <div class="levelup-sub">Level <span id="lvl-num">1</span> · choose an upgrade</div>
+  <div class="panel wide">
+    <div class="levelup-title">⚡ LEVEL <span id="lvl-num">1</span></div>
+    <div class="levelup-sub">Choose your power</div>
     <div id="upgrade-cards"></div>
+    <button id="reroll-btn" class="reroll">🎲 Reroll <span id="reroll-n">(3)</span></button>
   </div>
 </div>
 
@@ -153,25 +111,12 @@
     <div class="gameover-sub" id="gameover-flavor">The bears got your bags.</div>
     <div class="run-stats">
       <div><span id="ro-time">00:00</span><small>Survived</small></div>
+      <div><span id="ro-wave">1</span><small>Wave</small></div>
       <div><span id="ro-level">1</span><small>Level</small></div>
       <div><span id="ro-kills">0</span><small>Kills</small></div>
-      <div><span id="ro-hex">0</span><small>HEX</small></div>
     </div>
     <div class="best" id="best-line"></div>
     <button id="restart-btn" class="btn-primary">↻ RUN IT BACK</button>
-  </div>
-</div>
-
-<div id="win-screen" class="overlay hidden">
-  <div class="panel">
-    <div class="win-title">☀ WE MADE IT</div>
-    <div class="win-sub">You survived the crypto winter and slayed The Bear Market. Longer pays better.</div>
-    <div class="run-stats">
-      <div><span id="wo-level">1</span><small>Level</small></div>
-      <div><span id="wo-kills">0</span><small>Kills</small></div>
-      <div><span id="wo-hex">0</span><small>HEX</small></div>
-    </div>
-    <button id="win-restart-btn" class="btn-primary">↻ PLAY AGAIN</button>
   </div>
 </div>
 
