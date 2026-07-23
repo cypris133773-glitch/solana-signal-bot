@@ -878,6 +878,11 @@ function loop(ts){ requestAnimationFrame(loop); let dt=(ts-lastTs)/1000; lastTs=
 
 document.getElementById('start-btn').addEventListener('click',startGame);
 document.getElementById('restart-btn').addEventListener('click',startGame);
+document.getElementById('donate-copy').addEventListener('click',function(){ const btn=this; const a=document.getElementById('donate-addr').textContent.trim();
+  const done=()=>{ btn.textContent='✓ Copied!'; setTimeout(()=>{ btn.textContent='📋 Copy address'; },1600); };
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(a).then(done,done); }
+    else { const t=document.createElement('textarea'); t.value=a; document.body.appendChild(t); t.select(); try{document.execCommand('copy');}catch(_){} t.remove(); done(); } }
+  catch(_){ done(); } });
 document.getElementById('pause-btn').addEventListener('click',togglePause);
 document.getElementById('mute-btn').addEventListener('click',toggleMute);
 document.getElementById('reroll-btn').addEventListener('click',doReroll);
