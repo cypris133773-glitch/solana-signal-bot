@@ -576,9 +576,9 @@ function hexP(g,R){ g.beginPath(); for(let i=0;i<6;i++){const a=i/6*TAU; g[i?'li
 // ---- 2.5D shading helpers (fake volumetric light from top-left) ----
 function shade(hex,amt){ const c=hex.replace('#',''); let r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
   if(amt>=0){r+=(255-r)*amt;g+=(255-g)*amt;b+=(255-b)*amt;}else{r*=1+amt;g*=1+amt;b*=1+amt;} return 'rgb('+(r|0)+','+(g|0)+','+(b|0)+')'; }
-function sphereGrad(g,r,color){ const gr=g.createRadialGradient(-r*0.34,-r*0.4,r*0.1,0,0,r*1.08); gr.addColorStop(0,shade(color,0.62)); gr.addColorStop(0.5,color); gr.addColorStop(1,shade(color,-0.55)); return gr; }
-function groundShadow(g,r){ g.save(); g.globalAlpha=0.3; g.fillStyle='#000'; g.beginPath(); g.ellipse(0,r*0.94,r*0.94,r*0.4,0,0,TAU); g.fill(); g.restore(); }
-function specHi(g,r){ g.save(); g.globalAlpha=0.5; g.fillStyle='#fff'; g.beginPath(); g.ellipse(-r*0.32,-r*0.4,r*0.24,r*0.14,-0.5,0,TAU); g.fill(); g.restore(); }
+function sphereGrad(g,r,color){ const gr=g.createRadialGradient(-r*0.38,-r*0.44,r*0.06,0,0,r*1.14); gr.addColorStop(0,shade(color,0.78)); gr.addColorStop(0.42,color); gr.addColorStop(1,shade(color,-0.66)); return gr; }
+function groundShadow(g,r){ g.save(); const gs=g.createRadialGradient(0,r*0.98,r*0.1,0,r*0.98,r*1.15); gs.addColorStop(0,'rgba(0,0,0,0.42)'); gs.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gs; g.beginPath(); g.ellipse(0,r*0.98,r*1.1,r*0.46,0,0,TAU); g.fill(); g.restore(); }
+function specHi(g,r){ g.save(); g.globalAlpha=0.6; g.fillStyle='#fff'; g.beginPath(); g.ellipse(-r*0.34,-r*0.42,r*0.26,r*0.15,-0.5,0,TAU); g.fill(); g.globalAlpha=0.22; g.beginPath(); g.ellipse(-r*0.2,-r*0.25,r*0.5,r*0.34,-0.5,0,TAU); g.fill(); g.restore(); }
 function orbGrad(g,x,y,r,color){ const gr=g.createRadialGradient(x-r*0.3,y-r*0.3,0,x,y,r); gr.addColorStop(0,'#ffffff'); gr.addColorStop(0.4,color); gr.addColorStop(1,shade(color,-0.35)); return gr; }
 function drawRHHead(g,hr){ g.fillStyle='#7a4a24'; g.beginPath(); g.arc(0,-hr*0.15,hr*1.06,Math.PI*0.9,Math.PI*2.1); g.fill();
   g.fillStyle='#f0c39a'; g.beginPath(); g.arc(0,0,hr,0,TAU); g.fill();
@@ -657,7 +657,7 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
   // enemy bullets
   for(const b of ebullets){ ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,TAU); ctx.fillStyle=orbGrad(ctx,b.x,b.y,b.r,b.color); ctx.shadowColor=b.color; ctx.shadowBlur=8; ctx.fill(); }
   ctx.shadowBlur=0;
-  for(const e of enemies)drawEnemy(e);
+  const drawOrder=enemies.slice().sort((a,b)=>a.y-b.y); for(const e of drawOrder)drawEnemy(e);
   for(const b of bullets){ ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,TAU); ctx.fillStyle=orbGrad(ctx,b.x,b.y,b.r,b.color); ctx.shadowColor=b.color; ctx.shadowBlur=12; ctx.fill(); }
   ctx.shadowBlur=0;
   // orbit shields

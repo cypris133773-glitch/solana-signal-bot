@@ -11,13 +11,14 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--ink);
 #game-root{position:fixed;inset:0;height:100dvh;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(circle at 50% 30%,#160a33,#070510 75%)}
 
-/* rotate-to-landscape hint (mobile portrait only) */
-#rotate-hint{display:none}
-@media (max-width:900px) and (orientation:portrait){
-  #rotate-hint{display:flex;position:absolute;inset:0;z-index:8;flex-direction:column;gap:14px;
-    align-items:center;justify-content:center;text-align:center;background:rgba(7,5,16,.82);
-    font-size:56px;color:var(--hex-pink)}
-  #rotate-hint span{font-size:15px;font-weight:800;color:var(--ink);line-height:1.5;letter-spacing:.5px}
+/* declutter on phones: unobstructed full-screen view (hide side panels + trim top bar) */
+@media (pointer:coarse), (max-width:820px){
+  #left-panel,#right-panel{display:none !important}
+  #topbar{background:none;padding:6px 8px}
+  .avatar-card{background:rgba(18,12,34,.5)}
+  .wave-label{display:none}
+  .cur{padding:1px 7px 1px 5px;font-size:11px}
+  .cur span:last-child{min-width:32px}
 }
 #app{position:relative;width:100%;height:100%;background:#070510;overflow:hidden}
 
