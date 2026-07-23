@@ -316,12 +316,12 @@ function spawnPotion(){ const a=rand(0,TAU),d=rand(90,170);
   gems.push({x:clamp(player.x+Math.cos(a)*d,20,WORLD.w-20),y:clamp(player.y+Math.sin(a)*d,20,WORLD.h-20),r:12,xp:0,type:'potion',vx:0,vy:0,pulled:false}); }
 function spawnMagnet(){ const a=rand(0,TAU),d=rand(30,55);
   gems.push({x:clamp(player.x+Math.cos(a)*d,20,WORLD.w-20),y:clamp(player.y+Math.sin(a)*d,20,WORLD.h-20),r:14,xp:0,type:'magnet',vx:0,vy:0,pulled:false});
-  toast('🧲 MAGNET DROPPED','#ff3b3b'); }
+  toast('🏎️ LAMBO MAGNET','#8dff3b'); }
 function recalc(){ const p=player,P=p.passives;
   p.maxHp=(120+(P.maxhp||0)*25)*(1-Math.min(0.45,(P.glasscannon||0)*0.12));
   p.speed=p.baseSpeed*(1+(P.speed||0)*0.10);
   p.magnetMul=1+(P.magnet||0)*0.28;
-  p.dmgMul=1+(P.power||0)*0.12+(P.gigachad||0)*0.08+(P.glasscannon||0)*0.25;
+  p.dmgMul=(1+(P.power||0)*0.12+(P.gigachad||0)*0.08+(P.glasscannon||0)*0.25)*1.25;
   p.hasteMul=1+(P.haste||0)*0.09+(P.gigachad||0)*0.08+(P.overclock||0)*0.08;
   p.regen=(P.regen||0)*0.7;
   p.xpMul=1+(P.greed||0)*0.18;
@@ -593,7 +593,7 @@ function updateGems(dt){ const p=player,pullR=100*p.magnetMul,pr2=pullR*pullR;
     const d2=dist2(g.x,g.y,p.x,p.y); if(g.pulled||d2<pr2)g.pulled=true;
     if(g.pulled){ const a=Math.atan2(p.y-g.y,p.x-g.x),sp=Math.max(280,280+(pr2-d2)*0.0006); g.x+=Math.cos(a)*sp*dt; g.y+=Math.sin(a)*sp*dt; }
     if(d2<(p.r+9)**2){ gems.splice(i,1);
-      if(g.type==='magnet'){ for(const o of gems){ if(o!==g&&o.type!=='magnet')o.pulled=true; } floater('+MAGNET',p.x,p.y-18,'#ffd23b',true); sfx('evo'); burst(p.x,p.y,'#ffd23b',26); }
+      if(g.type==='magnet'){ for(const o of gems){ if(o!==g&&o.type!=='magnet')o.pulled=true; } floater('+MAGNET',p.x,p.y-18,'#8dff3b',true); sfx('evo'); burst(p.x,p.y,'#8dff3b',26); }
       else if(g.type==='potion'){ heal(p.maxHp*0.4); floater('+POTION',p.x,p.y-18,'#ff5b7a',true); playPotionSfx(); burst(p.x,p.y,'#ff3b5c',20); potionRespawn=16; }
       else if(g.type==='heart'){ heal(p.maxHp*0.15); floater('+HP',p.x,p.y-18,'#3bff7a',true); sfx('pick'); }
       else if(g.type==='gem'){ gainXp(g.xp); gemCollected++; sfx('pick'); }
@@ -685,19 +685,64 @@ function drawHexLogo(g,R){ const grd=g.createLinearGradient(R*0.75,-R*0.75,-R*0.
   g.fillStyle=grd; hexP(g,R); g.fill();                 // outer hex
   g.fillStyle='#160a2b'; hexP(g,R*0.62); g.fill();      // punched inner ring
   g.save(); g.translate(-R*0.24,R*0.24); g.fillStyle=grd; hexP(g,R*0.27); g.fill(); g.restore(); } // small hex, lower-left
-// Horseshoe magnet pickup — vacuums all points on the map when grabbed
-function drawMagnet(g,r){ g.save(); g.rotate(Math.sin(time*3)*0.14);
-  const R=r*0.82, th=r*0.56, leg=r*0.7; g.lineCap='round'; g.lineJoin='round';
-  // red horseshoe body (U shape, opening down)
-  g.strokeStyle='#e5322f'; g.lineWidth=th;
-  g.beginPath(); g.moveTo(-R,leg); g.lineTo(-R,0); g.arc(0,0,R,Math.PI,0,false); g.lineTo(R,leg); g.stroke();
-  // glossy red highlight
-  g.strokeStyle='rgba(255,150,150,.55)'; g.lineWidth=th*0.28;
-  g.beginPath(); g.arc(0,0,R,Math.PI*1.15,Math.PI*1.75,false); g.stroke();
-  // silver pole tips
-  g.strokeStyle='#e9eef4'; g.lineWidth=th; g.lineCap='butt';
-  g.beginPath(); g.moveTo(-R,leg*0.5); g.lineTo(-R,leg); g.stroke();
-  g.beginPath(); g.moveTo(R,leg*0.5); g.lineTo(R,leg); g.stroke();
+// Green Lambo magnet pickup — vacuums all points on the map when grabbed
+function drawMagnet(g,r){ const u=r*1.05; g.save(); g.lineJoin='round'; g.lineCap='round';
+  const OUT='#2c5a12', GRN='#7ada27', GRNlt='#a7f24e', GRNdk='#5aa81c';
+  const lw=Math.max(1,u*0.08); g.lineWidth=lw; g.strokeStyle=OUT;
+  // ---- raised scissor doors (drawn behind the body) ----
+  const door=(sx)=>{ g.beginPath();
+    g.moveTo(sx*0.62*u,-0.45*u); g.lineTo(sx*0.98*u,-0.6*u);
+    g.lineTo(sx*1.18*u,-1.95*u); g.lineTo(sx*0.74*u,-1.9*u);
+    g.lineTo(sx*0.5*u,-0.5*u); g.closePath(); g.fillStyle=GRNdk; g.fill(); g.stroke();
+    // door edge sheen
+    g.beginPath(); g.moveTo(sx*0.86*u,-0.7*u); g.lineTo(sx*1.02*u,-1.85*u);
+    g.strokeStyle=GRNlt; g.lineWidth=lw*0.9; g.stroke(); g.strokeStyle=OUT; g.lineWidth=lw; };
+  door(-1); door(1);
+  // ---- main body wedge ----
+  g.beginPath();
+  g.moveTo(-1.5*u,0.82*u); g.lineTo(-1.34*u,0.02*u); g.lineTo(-0.86*u,-0.5*u);
+  g.lineTo(0.86*u,-0.5*u); g.lineTo(1.34*u,0.02*u); g.lineTo(1.5*u,0.82*u);
+  g.lineTo(1.04*u,1.12*u); g.lineTo(-1.04*u,1.12*u); g.closePath();
+  g.fillStyle=GRN; g.fill(); g.stroke();
+  // hood highlight
+  g.beginPath(); g.moveTo(-0.8*u,-0.42*u); g.lineTo(0.8*u,-0.42*u); g.lineTo(1.0*u,0.2*u);
+  g.lineTo(-1.0*u,0.2*u); g.closePath(); g.fillStyle=GRNlt; g.globalAlpha=0.35; g.fill(); g.globalAlpha=1;
+  // ---- windshield ----
+  g.beginPath(); g.moveTo(-0.72*u,-0.47*u); g.lineTo(0.72*u,-0.47*u);
+  g.lineTo(0.56*u,-0.04*u); g.lineTo(-0.56*u,-0.04*u); g.closePath();
+  g.fillStyle='#0c1f18'; g.fill(); g.stroke();
+  g.beginPath(); g.moveTo(-0.62*u,-0.43*u); g.lineTo(-0.08*u,-0.43*u);
+  g.lineTo(-0.26*u,-0.08*u); g.lineTo(-0.5*u,-0.08*u); g.closePath();
+  g.fillStyle='rgba(160,225,255,.22)'; g.fill();
+  // ---- side mirrors ----
+  g.fillStyle='#141414';
+  g.beginPath(); g.ellipse(-0.94*u,-0.16*u,0.17*u,0.1*u,0.35,0,TAU); g.fill();
+  g.beginPath(); g.ellipse(0.94*u,-0.16*u,0.17*u,0.1*u,-0.35,0,TAU); g.fill();
+  // ---- headlights (angular boomerang) ----
+  const hl=(sx)=>{ g.beginPath();
+    g.moveTo(sx*0.56*u,0.14*u); g.lineTo(sx*1.16*u,0.18*u);
+    g.lineTo(sx*1.04*u,0.42*u); g.lineTo(sx*0.62*u,0.36*u); g.closePath();
+    g.fillStyle='#0c1710'; g.fill();
+    g.beginPath(); g.moveTo(sx*0.66*u,0.22*u); g.lineTo(sx*1.03*u,0.25*u);
+    g.strokeStyle='#bfefff'; g.lineWidth=Math.max(1,u*0.06); g.stroke();
+    g.strokeStyle=OUT; g.lineWidth=lw; };
+  hl(-1); hl(1);
+  // ---- lower bumper / splitter ----
+  g.beginPath(); g.moveTo(-1.44*u,0.58*u); g.lineTo(1.44*u,0.58*u);
+  g.lineTo(1.14*u,1.14*u); g.lineTo(-1.14*u,1.14*u); g.closePath();
+  g.fillStyle='#161616'; g.fill();
+  g.fillStyle='#000';
+  g.beginPath(); g.moveTo(-1.22*u,0.68*u); g.lineTo(-0.55*u,0.7*u); g.lineTo(-0.62*u,1.02*u); g.lineTo(-1.02*u,1.02*u); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(1.22*u,0.68*u); g.lineTo(0.55*u,0.7*u); g.lineTo(0.62*u,1.02*u); g.lineTo(1.02*u,1.02*u); g.closePath(); g.fill();
+  // ---- license plate ----
+  g.fillStyle='#f2f2f2'; g.fillRect(-0.36*u,0.82*u,0.72*u,0.22*u);
+  g.strokeStyle='#0a0a0a'; g.lineWidth=Math.max(1,u*0.04); g.strokeRect(-0.36*u,0.82*u,0.72*u,0.22*u);
+  g.fillStyle='#111';
+  for(let i=0;i<6;i++){ g.fillRect((-0.28+i*0.1)*u,0.88*u,0.05*u,0.1*u); } // plate glyph ticks
+  // ---- Lambo shield emblem ----
+  g.fillStyle='#d9a520'; g.strokeStyle='#7a5a10'; g.lineWidth=Math.max(1,u*0.03);
+  g.beginPath(); g.moveTo(0,0.26*u); g.lineTo(0.1*u,0.32*u); g.lineTo(0.1*u,0.44*u);
+  g.lineTo(0,0.52*u); g.lineTo(-0.1*u,0.44*u); g.lineTo(-0.1*u,0.32*u); g.closePath(); g.fill(); g.stroke();
   g.restore(); }
 // Original luxury dive/GMT-style watch (drawn, not a copyrighted product photo)
 function drawWatch(g,r){
@@ -786,7 +831,7 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
     ctx.translate(0,Math.sin(time*4+gm.x)*2);
     if(gm.type==='heart'){ ctx.fillStyle=sphereGrad(ctx,gm.r,'#ff4d7d'); ctx.shadowColor='#ff2d9b'; ctx.shadowBlur=10; ctx.save(); ctx.scale(.85,.85); heartPath(ctx,gm.r); ctx.fill(); ctx.restore(); }
     else if(gm.type==='gem'){ ctx.rotate((time*2+gm.x)%TAU); ctx.shadowColor='#4fd0ff'; ctx.shadowBlur=10; ctx.fillStyle=sphereGrad(ctx,gm.r,'#4fd0ff'); ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.8,0); ctx.lineTo(0,gm.r); ctx.lineTo(-gm.r*.8,0); ctx.closePath(); ctx.fill(); ctx.fillStyle='rgba(255,255,255,.65)'; ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.32,-gm.r*.2); ctx.lineTo(0,gm.r*.05); ctx.closePath(); ctx.fill(); }
-    else if(gm.type==='magnet'){ ctx.shadowColor='#ff3b3b'; ctx.shadowBlur=16; drawMagnet(ctx,gm.r); }
+    else if(gm.type==='magnet'){ ctx.shadowColor='#8dff3b'; ctx.shadowBlur=16; drawMagnet(ctx,gm.r); }
     else if(gm.type==='potion'){ ctx.shadowColor='#00c2ff'; ctx.shadowBlur=15; drawPulseLogo(ctx,gm.r*1.5); }
     else { ctx.shadowColor='#8ad0ff'; ctx.shadowBlur=8; drawWatch(ctx,gm.r*1.15); } ctx.restore(); }
   ctx.shadowBlur=0;
@@ -925,6 +970,6 @@ document.getElementById('reroll-btn').addEventListener('click',doReroll);
 renderBrandLogos();
 requestAnimationFrame(loop);
 
-if(location.search.indexOf('debug')!==-1){ window.__hs={ forceLevel:()=>{if(state==='playing')gainXp(player.xpNext);}, boss:()=>spawnBoss(), spawn:(k,dx,dy)=>spawnEnemy(k,player.x+(dx||100),player.y+(dy||0)), magnet:()=>spawnMagnet(), setOrbs:(n)=>{player.weapons.hexstake.orbitBonus=n;}, getOrbs:()=>{const w=player.weapons.hexstake;return{bonus:w.orbitBonus||0,cnt:Math.round(wstat(WEAPONS.hexstake,w).cnt)};},
+if(location.search.indexOf('debug')!==-1){ window.__hs={ forceLevel:()=>{if(state==='playing')gainXp(player.xpNext);}, boss:()=>spawnBoss(), spawn:(k,dx,dy)=>spawnEnemy(k,player.x+(dx||100),player.y+(dy||0)), magnet:()=>spawnMagnet(), magnetFar:()=>{gems.push({x:player.x+150,y:player.y,r:16,xp:0,type:'magnet',vx:0,vy:0,pulled:false});}, setOrbs:(n)=>{player.weapons.hexstake.orbitBonus=n;}, getOrbs:()=>{const w=player.weapons.hexstake;return{bonus:w.orbitBonus||0,cnt:Math.round(wstat(WEAPONS.hexstake,w).cnt)};},
   snapshot:()=>({state,level:player.level,kills,wave,weapons:Object.keys(player.weapons).length,passives:Object.keys(player.passives).length,enemies:enemies.length}) }; }
 })();
