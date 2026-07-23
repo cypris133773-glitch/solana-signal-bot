@@ -370,8 +370,8 @@ function readInput(){ let x=0,y=0;
   return{x:move.x,y:move.y}; }
 
 // ---------- spawning (endless) ----------
-function hpScale(){ return 1+time*0.03+Math.pow(time/60,1.7)*0.12; }
-function dmgScale(){ return (1+time*0.014+Math.pow(time/90,1.4)*0.1)*0.8; }
+function hpScale(){ return 1+time*0.022+Math.pow(time/70,1.55)*0.1; }
+function dmgScale(){ return (1+time*0.01+Math.pow(time/100,1.35)*0.08)*0.8; }
 function spawnEnemy(kind,ox,oy,scaleMul){ if(enemies.length>230)return;
   const def=ENEMIES[kind]; let x,y;
   if(ox!==undefined){x=ox;y=oy;} else{ const a=rand(0,TAU),d=Math.min(Math.max(W,H)*0.6,560)+rand(0,120);
@@ -395,7 +395,7 @@ function updateThreat(){ let t='warmup';
   document.getElementById('threat').textContent=t; }
 function updateSpawning(dt){
   spawnTimer-=dt; const interval=Math.max(0.14,0.85-time/200);
-  if(spawnTimer<=0){ spawnTimer=interval; const batch=1+Math.floor(time/22);
+  if(spawnTimer<=0){ spawnTimer=interval; const batch=1+Math.floor(time/28);
     for(let i=0;i<batch;i++){ spawnEnemy(rollEnemyKind()); }
   }
   bossTimer-=dt; if(bossTimer<=0 && !boss){ bossTimer=BOSS_INTERVAL*Math.max(0.6,1-bossCount*0.03); spawnBoss(); }
