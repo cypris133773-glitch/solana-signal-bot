@@ -162,7 +162,14 @@ canvas#game{display:block;width:100%;height:100%;touch-action:none}
 .run-stats>div{border:1px solid var(--stroke);border-radius:12px;padding:11px 13px;min-width:70px}
 .run-stats span{display:block;font-size:22px;font-weight:900;color:var(--pulse-cyan);font-variant-numeric:tabular-nums}
 .run-stats small{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px}
-.best{color:var(--gold);font-size:12.5px;font-weight:700;margin-bottom:16px;min-height:15px}
+.best{color:var(--gold);font-size:12.5px;font-weight:700;margin-bottom:14px;min-height:15px}
+.donate{background:#160c2c;border:1px solid var(--stroke);border-radius:12px;padding:12px 12px 10px;margin-bottom:16px}
+.donate-title{font-size:12px;font-weight:800;color:var(--hex-pink);margin-bottom:7px}
+.donate-addr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--ink);
+  background:#0e0720;border:1px solid var(--stroke);border-radius:8px;padding:7px 8px;word-break:break-all;user-select:all;line-height:1.4}
+.donate-copy{margin-top:8px;font-family:inherit;font-size:12px;font-weight:800;color:var(--ink);cursor:pointer;
+  background:linear-gradient(90deg,var(--hex-purple),var(--hex-pink));border:none;border-radius:8px;padding:7px 14px}
+.donate-copy:active{transform:translateY(1px)}
 
 @media(max-width:520px){
   .logo{font-size:34px}
