@@ -284,7 +284,7 @@ const LEVEL_FLAVORS=['Longer pays better.','Number go up.','Diamond hands activa
 let state='menu';
 let player,enemies,bullets,ebullets,gems,particles,floaters,novas,beams,zones,mines,turrets,chains,lobs,whips;
 let cam={x:0,y:0};
-let time,kills,hexCollected,gemCollected,wave,spawnTimer,screenShake,lastTs=0;
+let time,kills,hexCollected,gemCollected,wave,spawnTimer,screenShake,lastTs=0,potionRespawn=0;
 let bossTimer,bossCount,boss,combo,comboT,rerolls;
 let quipT=0;
 
@@ -298,8 +298,11 @@ function newRun(){
   zones=[];mines=[];turrets=[];chains=[];lobs=[];whips=[];
   time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;
   bossTimer=BOSS_INTERVAL;bossCount=0;boss=null;combo=0;comboT=0;rerolls=3;
-  recalc(); for(let i=0;i<7;i++) spawnEnemy('fud');
+  potionRespawn=0;
+  recalc(); for(let i=0;i<7;i++) spawnEnemy('fud'); spawnPotion();
 }
+function spawnPotion(){ const a=rand(0,TAU),d=rand(90,170);
+  gems.push({x:clamp(player.x+Math.cos(a)*d,20,WORLD.w-20),y:clamp(player.y+Math.sin(a)*d,20,WORLD.h-20),r:12,xp:0,type:'potion',vx:0,vy:0,pulled:false}); }
 function recalc(){ const p=player,P=p.passives;
   p.maxHp=(120+(P.maxhp||0)*25)*(1-Math.min(0.45,(P.glasscannon||0)*0.12));
   p.speed=p.baseSpeed*(1+(P.speed||0)*0.10);
@@ -364,9 +367,9 @@ function spawnBoss(){ const b=BOSSES[bossCount%BOSSES.length]; const loop=Math.f
   const hp=b.hp*(1+bossCount*0.55)*(1+time/150);
   const e={kind:'boss',x:clamp(player.x+Math.cos(a)*d,150,WORLD.w-150),y:clamp(player.y+Math.sin(a)*d,150,WORLD.h-150),
     r:b.r+loop*4,hp,maxHp:hp,spd:b.spd,dmg:b.dmg*dmgScale(),xp:120+bossCount*40,b:'boss',sp:b.sp,c:b.c||'#6a2fb0',
-    hitFlash:0,knock:{x:0,y:0},boss:true,wob:0,bd:b,atkT:2.5,charge:0,name:b.n,emoji:b.emoji,def:b};
+    hitFlash:0,knock:{x:0,y:0},boss:true,wob:0,bd:b,atkT:2.5,charge:0,name:'FUDSTER WALL',emoji:b.emoji,def:b};
   enemies.push(e); boss=e; bossCount++;
-  toast('☠ '+b.n.toUpperCase()+' APPEARS','#ff3b5c'); screenShake=24; sfx('boss');
+  toast('☠ FUDSTER WALL APPEARS','#ff3b5c'); screenShake=24; sfx('boss');
 }
 function updateThreat(){ let t='warmup';
   if(time>600)t='hell'; else if(time>420)t='nightmare'; else if(time>270)t='brutal';
@@ -569,9 +572,11 @@ function updateGems(dt){ const p=player,pullR=100*p.magnetMul,pr2=pullR*pullR;
     const d2=dist2(g.x,g.y,p.x,p.y); if(g.pulled||d2<pr2)g.pulled=true;
     if(g.pulled){ const a=Math.atan2(p.y-g.y,p.x-g.x),sp=Math.max(280,280+(pr2-d2)*0.0006); g.x+=Math.cos(a)*sp*dt; g.y+=Math.sin(a)*sp*dt; }
     if(d2<(p.r+9)**2){ gems.splice(i,1);
-      if(g.type==='heart'){ heal(p.maxHp*0.15); floater('+HP',p.x,p.y-18,'#3bff7a',true); sfx('pick'); }
+      if(g.type==='potion'){ heal(p.maxHp*0.4); floater('+POTION',p.x,p.y-18,'#ff5b7a',true); sfx('level'); burst(p.x,p.y,'#ff3b5c',20); potionRespawn=16; }
+      else if(g.type==='heart'){ heal(p.maxHp*0.15); floater('+HP',p.x,p.y-18,'#3bff7a',true); sfx('pick'); }
       else if(g.type==='gem'){ gainXp(g.xp); gemCollected++; sfx('pick'); }
-      else { gainXp(g.xp); hexCollected+=g.xp; } } } }
+      else { gainXp(g.xp); hexCollected+=g.xp; } } }
+  if(potionRespawn>0){ potionRespawn-=dt; if(potionRespawn<=0)spawnPotion(); } }
 function gainXp(a){ const p=player; p.xp+=a*p.xpMul;
   while(p.xp>=p.xpNext){ p.xp-=p.xpNext; p.level++; p.xpNext=Math.floor(5+p.level*3.6+p.level*p.level*0.6); heal(10);
     if(state==='playing'){ openLevelUp(); return; } } }
@@ -656,6 +661,15 @@ function drawHexLogo(g,R){ const grd=g.createLinearGradient(R*0.75,-R*0.75,-R*0.
   g.fillStyle=grd; hexP(g,R); g.fill();                 // outer hex
   g.fillStyle='#160a2b'; hexP(g,R*0.62); g.fill();      // punched inner ring
   g.save(); g.translate(-R*0.24,R*0.24); g.fillStyle=grd; hexP(g,R*0.27); g.fill(); g.restore(); } // small hex, lower-left
+// PulseChain-style logo: gradient hexagon with a black heartbeat/pulse line
+function drawPulseLogo(g,R){ const grd=g.createLinearGradient(R*0.7,-R*0.9,-R*0.5,R*0.9);
+  grd.addColorStop(0,'#00c2ff'); grd.addColorStop(0.42,'#8b2fff'); grd.addColorStop(0.75,'#ff2d9b'); grd.addColorStop(1,'#ff2d55');
+  g.fillStyle=grd; hexP(g,R); g.fill();
+  g.strokeStyle='#0a0812'; g.lineWidth=R*0.17; g.lineJoin='round'; g.lineCap='round';
+  g.beginPath();
+  g.moveTo(-R*0.88,-R*0.04); g.lineTo(-R*0.34,-R*0.04); g.lineTo(-R*0.18,-R*0.52);
+  g.lineTo(0,R*0.78); g.lineTo(R*0.18,-R*0.32); g.lineTo(R*0.33,R*0.06); g.lineTo(R*0.88,R*0.06);
+  g.stroke(); }
 function drawRHHead(g,hr){ g.fillStyle='#7a4a24'; g.beginPath(); g.arc(0,-hr*0.15,hr*1.06,Math.PI*0.9,Math.PI*2.1); g.fill();
   g.fillStyle='#f0c39a'; g.beginPath(); g.arc(0,0,hr,0,TAU); g.fill();
   g.fillStyle='#8a5a2e'; g.beginPath(); g.moveTo(-hr*0.9,-hr*0.2); g.quadraticCurveTo(-hr*0.2,-hr*1.15,hr*0.95,-hr*0.35); g.quadraticCurveTo(hr*0.2,-hr*0.7,-hr*0.9,-hr*0.2); g.fill();
@@ -719,6 +733,7 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
     ctx.translate(0,Math.sin(time*4+gm.x)*2);
     if(gm.type==='heart'){ ctx.fillStyle=sphereGrad(ctx,gm.r,'#ff4d7d'); ctx.shadowColor='#ff2d9b'; ctx.shadowBlur=10; ctx.save(); ctx.scale(.85,.85); heartPath(ctx,gm.r); ctx.fill(); ctx.restore(); }
     else if(gm.type==='gem'){ ctx.rotate((time*2+gm.x)%TAU); ctx.shadowColor='#4fd0ff'; ctx.shadowBlur=10; ctx.fillStyle=sphereGrad(ctx,gm.r,'#4fd0ff'); ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.8,0); ctx.lineTo(0,gm.r); ctx.lineTo(-gm.r*.8,0); ctx.closePath(); ctx.fill(); ctx.fillStyle='rgba(255,255,255,.65)'; ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.32,-gm.r*.2); ctx.lineTo(0,gm.r*.05); ctx.closePath(); ctx.fill(); }
+    else if(gm.type==='potion'){ ctx.shadowColor='#00c2ff'; ctx.shadowBlur=15; drawPulseLogo(ctx,gm.r*1.5); }
     else { ctx.rotate((time*3+gm.x)%TAU); ctx.shadowColor='#ff8a00'; ctx.shadowBlur=10; ctx.fillStyle=sphereGrad(ctx,gm.r,'#ffcf33'); hexP(ctx,gm.r); ctx.fill(); ctx.fillStyle='rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(-gm.r*0.28,-gm.r*0.3,gm.r*0.2,0,TAU); ctx.fill(); } ctx.restore(); }
   ctx.shadowBlur=0;
   // zones/mines/lobs
