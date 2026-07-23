@@ -367,7 +367,7 @@ function readInput(){ let x=0,y=0;
 
 // ---------- spawning (endless) ----------
 function hpScale(){ return 1+time*0.03+Math.pow(time/60,1.7)*0.12; }
-function dmgScale(){ return 1+time*0.014+Math.pow(time/90,1.4)*0.1; }
+function dmgScale(){ return (1+time*0.014+Math.pow(time/90,1.4)*0.1)*0.8; }
 function spawnEnemy(kind,ox,oy,scaleMul){ if(enemies.length>230)return;
   const def=ENEMIES[kind]; let x,y;
   if(ox!==undefined){x=ox;y=oy;} else{ const a=rand(0,TAU),d=Math.min(Math.max(W,H)*0.6,560)+rand(0,120);
@@ -401,8 +401,8 @@ function rollEnemyKind(){ const t=time,r=Math.random();
   if(t>420) return r<.1?'whalee':r<.2?'grower':r<.32?'sec':r<.42?'influencer':r<.54?'taxman':r<.64?'exploder':r<.74?'scammer':r<.84?'maxi':r<.92?'bear':'shorter';
   if(t>270) return r<.14?'grower':r<.28?'sec':r<.4?'taxman':r<.52?'scammer':r<.64?'exploder':r<.74?'maxi':r<.84?'bear':r<.93?'shorter':'nocoiner';
   if(t>150) return r<.12?'grower':r<.26?'taxman':r<.4?'scammer':r<.54?'maxi':r<.68?'bear':r<.8?'shorter':r<.9?'nocoiner':'exploder';
-  if(t>70) return r<.2?'bear':r<.4?'shorter':r<.58?'nocoiner':r<.74?'paper':r<.9?'jeet':'scammer';
-  if(t>30) return r<.3?'shorter':r<.55?'paper':r<.8?'jeet':'fud';
+  if(t>70) return r<.18?'grower':r<.34?'bear':r<.5?'shorter':r<.64?'nocoiner':r<.78?'paper':r<.9?'jeet':'scammer';
+  if(t>30) return r<.14?'grower':r<.4?'shorter':r<.62?'paper':r<.82?'jeet':'fud';
   return r<.5?'fud':r<.8?'jeet':'paper';
 }
 
