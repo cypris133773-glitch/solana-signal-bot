@@ -314,7 +314,7 @@ function newRun(){
 }
 function spawnPotion(){ const a=rand(0,TAU),d=rand(90,170);
   gems.push({x:clamp(player.x+Math.cos(a)*d,20,WORLD.w-20),y:clamp(player.y+Math.sin(a)*d,20,WORLD.h-20),r:12,xp:0,type:'potion',vx:0,vy:0,pulled:false}); }
-function spawnMagnet(){ const a=rand(0,TAU),d=rand(110,190);
+function spawnMagnet(){ const a=rand(0,TAU),d=rand(30,55);
   gems.push({x:clamp(player.x+Math.cos(a)*d,20,WORLD.w-20),y:clamp(player.y+Math.sin(a)*d,20,WORLD.h-20),r:14,xp:0,type:'magnet',vx:0,vy:0,pulled:false});
   toast('🧲 MAGNET DROPPED','#ff3b3b'); }
 function recalc(){ const p=player,P=p.passives;
