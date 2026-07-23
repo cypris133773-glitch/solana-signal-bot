@@ -580,6 +580,12 @@ function sphereGrad(g,r,color){ const gr=g.createRadialGradient(-r*0.38,-r*0.44,
 function groundShadow(g,r){ g.save(); const gs=g.createRadialGradient(0,r*0.98,r*0.1,0,r*0.98,r*1.15); gs.addColorStop(0,'rgba(0,0,0,0.42)'); gs.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gs; g.beginPath(); g.ellipse(0,r*0.98,r*1.1,r*0.46,0,0,TAU); g.fill(); g.restore(); }
 function specHi(g,r){ g.save(); g.globalAlpha=0.6; g.fillStyle='#fff'; g.beginPath(); g.ellipse(-r*0.34,-r*0.42,r*0.26,r*0.15,-0.5,0,TAU); g.fill(); g.globalAlpha=0.22; g.beginPath(); g.ellipse(-r*0.2,-r*0.25,r*0.5,r*0.34,-0.5,0,TAU); g.fill(); g.restore(); }
 function orbGrad(g,x,y,r,color){ const gr=g.createRadialGradient(x-r*0.3,y-r*0.3,0,x,y,r); gr.addColorStop(0,'#ffffff'); gr.addColorStop(0.4,color); gr.addColorStop(1,shade(color,-0.35)); return gr; }
+// The official-style HEX logo mark (concentric hexagons, pink->orange->gold)
+function drawHexLogo(g,R){ const grd=g.createLinearGradient(R*0.75,-R*0.75,-R*0.75,R*0.75);
+  grd.addColorStop(0,'#ff2d9b'); grd.addColorStop(0.5,'#ff7a1a'); grd.addColorStop(1,'#ffd21a');
+  g.fillStyle=grd; hexP(g,R); g.fill();                 // outer hex
+  g.fillStyle='#160a2b'; hexP(g,R*0.62); g.fill();      // punched inner ring
+  g.save(); g.translate(-R*0.24,R*0.24); g.fillStyle=grd; hexP(g,R*0.27); g.fill(); g.restore(); } // small hex, lower-left
 function drawRHHead(g,hr){ g.fillStyle='#7a4a24'; g.beginPath(); g.arc(0,-hr*0.15,hr*1.06,Math.PI*0.9,Math.PI*2.1); g.fill();
   g.fillStyle='#f0c39a'; g.beginPath(); g.arc(0,0,hr,0,TAU); g.fill();
   g.fillStyle='#8a5a2e'; g.beginPath(); g.moveTo(-hr*0.9,-hr*0.2); g.quadraticCurveTo(-hr*0.2,-hr*1.15,hr*0.95,-hr*0.35); g.quadraticCurveTo(hr*0.2,-hr*0.7,-hr*0.9,-hr*0.2); g.fill();
@@ -662,7 +668,10 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
   ctx.shadowBlur=0;
   // orbit shields
   for(const key in player.weapons){ const def=WEAPONS[key]; if(def.k!=='orbit')continue; const w=player.weapons[key],s=wstat(def,w.level); const em=w.evo?EVOS[key].mult:null; const cnt=Math.round(s.cnt+(em&&em.cnt?s.cnt*(em.cnt-1):0)),radius=s.rad*player.areaMul*(em&&em.rad?em.rad:1);
-    for(let i=0;i<cnt;i++){ const a=w.ang+i/cnt*TAU,ox=player.x+Math.cos(a)*radius,oy=player.y+Math.sin(a)*radius; ctx.save(); ctx.translate(ox,oy); ctx.rotate(a*3); ctx.fillStyle=def.c; ctx.shadowColor=def.c; ctx.shadowBlur=14; hexP(ctx,s.siz); ctx.fill(); ctx.restore(); } }
+    for(let i=0;i<cnt;i++){ const a=w.ang+i/cnt*TAU,ox=player.x+Math.cos(a)*radius,oy=player.y+Math.sin(a)*radius; ctx.save(); ctx.translate(ox,oy); ctx.rotate(a*3);
+      if(key==='hexstake'){ ctx.shadowColor='#ff2d9b'; ctx.shadowBlur=16; drawHexLogo(ctx,s.siz*1.25); }
+      else { ctx.fillStyle=def.c; ctx.shadowColor=def.c; ctx.shadowBlur=14; hexP(ctx,s.siz); ctx.fill(); ctx.fillStyle=shade(def.c,-0.3); hexP(ctx,s.siz*0.5); ctx.fill(); }
+      ctx.restore(); } }
   ctx.shadowBlur=0;
   // auras
   for(const key in player.weapons){ const def=WEAPONS[key]; if(def.k!=='aura')continue; const w=player.weapons[key],s=wstat(def,w.level); const em=w.evo?EVOS[key].mult:null; const radius=s.rad*player.areaMul*(em&&em.rad?em.rad:1);
