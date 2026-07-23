@@ -661,6 +661,19 @@ function drawHexLogo(g,R){ const grd=g.createLinearGradient(R*0.75,-R*0.75,-R*0.
   g.fillStyle=grd; hexP(g,R); g.fill();                 // outer hex
   g.fillStyle='#160a2b'; hexP(g,R*0.62); g.fill();      // punched inner ring
   g.save(); g.translate(-R*0.24,R*0.24); g.fillStyle=grd; hexP(g,R*0.27); g.fill(); g.restore(); } // small hex, lower-left
+// Original luxury dive/GMT-style watch (drawn, not a copyrighted product photo)
+function drawWatch(g,r){
+  g.fillStyle='#aeb7c4'; g.fillRect(-r*0.5,-r*1.5,r*0.2,r*3); g.fillRect(r*0.3,-r*1.5,r*0.2,r*3);
+  g.fillStyle='#cfd6e0'; g.fillRect(-r*0.55,-r*1.45,r*1.1,r*0.5); g.fillRect(-r*0.55,r*0.95,r*1.1,r*0.5);
+  const cs=g.createRadialGradient(-r*0.3,-r*0.3,r*0.1,0,0,r*1.2); cs.addColorStop(0,'#eef2f7'); cs.addColorStop(0.6,'#aeb7c4'); cs.addColorStop(1,'#6b7280');
+  g.fillStyle=cs; g.beginPath(); g.arc(0,0,r*1.05,0,TAU); g.fill();
+  g.lineWidth=r*0.26; g.strokeStyle='#2a4bd0'; g.beginPath(); g.arc(0,0,r*0.86,Math.PI,TAU); g.stroke();
+  g.strokeStyle='#c0392b'; g.beginPath(); g.arc(0,0,r*0.86,0,Math.PI); g.stroke();
+  g.fillStyle='#0d1b3a'; g.beginPath(); g.arc(0,0,r*0.62,0,TAU); g.fill();
+  g.fillStyle='#e8ecf5'; for(let i=0;i<12;i++){ const a=i/12*TAU; g.beginPath(); g.arc(Math.cos(a)*r*0.47,Math.sin(a)*r*0.47,r*0.055,0,TAU); g.fill(); }
+  g.strokeStyle='#fff'; g.lineWidth=r*0.08; g.lineCap='round'; g.beginPath(); g.moveTo(0,0); g.lineTo(0,-r*0.4); g.moveTo(0,0); g.lineTo(r*0.28,r*0.12); g.stroke();
+  g.fillStyle='#cfd6e0'; g.fillRect(r*1.0,-r*0.12,r*0.22,r*0.24);
+  g.fillStyle='rgba(255,255,255,0.5)'; g.beginPath(); g.ellipse(-r*0.35,-r*0.4,r*0.2,r*0.12,-0.6,0,TAU); g.fill(); }
 // PulseChain-style logo: gradient hexagon with a black heartbeat/pulse line
 function drawPulseLogo(g,R){ const grd=g.createLinearGradient(R*0.7,-R*0.9,-R*0.5,R*0.9);
   grd.addColorStop(0,'#00c2ff'); grd.addColorStop(0.42,'#8b2fff'); grd.addColorStop(0.75,'#ff2d9b'); grd.addColorStop(1,'#ff2d55');
@@ -734,7 +747,7 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
     if(gm.type==='heart'){ ctx.fillStyle=sphereGrad(ctx,gm.r,'#ff4d7d'); ctx.shadowColor='#ff2d9b'; ctx.shadowBlur=10; ctx.save(); ctx.scale(.85,.85); heartPath(ctx,gm.r); ctx.fill(); ctx.restore(); }
     else if(gm.type==='gem'){ ctx.rotate((time*2+gm.x)%TAU); ctx.shadowColor='#4fd0ff'; ctx.shadowBlur=10; ctx.fillStyle=sphereGrad(ctx,gm.r,'#4fd0ff'); ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.8,0); ctx.lineTo(0,gm.r); ctx.lineTo(-gm.r*.8,0); ctx.closePath(); ctx.fill(); ctx.fillStyle='rgba(255,255,255,.65)'; ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.32,-gm.r*.2); ctx.lineTo(0,gm.r*.05); ctx.closePath(); ctx.fill(); }
     else if(gm.type==='potion'){ ctx.shadowColor='#00c2ff'; ctx.shadowBlur=15; drawPulseLogo(ctx,gm.r*1.5); }
-    else { ctx.rotate((time*3+gm.x)%TAU); ctx.shadowColor='#ff8a00'; ctx.shadowBlur=10; ctx.fillStyle=sphereGrad(ctx,gm.r,'#ffcf33'); hexP(ctx,gm.r); ctx.fill(); ctx.fillStyle='rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(-gm.r*0.28,-gm.r*0.3,gm.r*0.2,0,TAU); ctx.fill(); } ctx.restore(); }
+    else { ctx.shadowColor='#8ad0ff'; ctx.shadowBlur=8; drawWatch(ctx,gm.r*1.15); } ctx.restore(); }
   ctx.shadowBlur=0;
   // zones/mines/lobs
   for(const m of mines){ ctx.save(); ctx.translate(m.x,m.y); ctx.fillStyle=m.armed>0?'#8a5a2b':'#ff8a00'; ctx.shadowColor='#ff8a00'; ctx.shadowBlur=8; ctx.beginPath(); ctx.arc(0,0,m.r,0,TAU); ctx.fill(); ctx.restore(); }
