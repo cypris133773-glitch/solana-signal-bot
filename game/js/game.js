@@ -695,7 +695,7 @@ function drawRHHead(g,hr){ g.fillStyle='#7a4a24'; g.beginPath(); g.arc(0,-hr*0.1
   g.save(); g.translate(-hr*0.42,0); g.scale(hr*0.028,hr*0.028); heartPath(g,10); g.fill(); g.restore();
   g.save(); g.translate(hr*0.42,0); g.scale(hr*0.028,hr*0.028); heartPath(g,10); g.fill(); g.restore(); g.restore(); }
 
-function drawPlayer(){ const p=player; ctx.save(); ctx.translate(p.x,p.y);
+function drawPlayer(){ const p=player; ctx.save(); ctx.translate(p.x,p.y); ctx.scale(1.5,1.5);
   if(p.buffT>0){ ctx.save(); ctx.globalAlpha=0.5+0.35*Math.sin(time*22); const ga=ctx.createRadialGradient(0,0,p.r,0,0,p.r*3.6); ga.addColorStop(0,'rgba(255,207,51,0.55)'); ga.addColorStop(0.6,'rgba(255,138,0,0.25)'); ga.addColorStop(1,'rgba(255,207,51,0)'); ctx.fillStyle=ga; ctx.beginPath(); ctx.arc(0,0,p.r*3.6,0,TAU); ctx.fill(); ctx.restore();
     for(let i=0;i<2;i++){ const a=time*8+i*Math.PI; ctx.fillStyle='rgba(255,220,120,0.8)'; ctx.beginPath(); ctx.arc(Math.cos(a)*p.r*2.2,Math.sin(a)*p.r*2.2-p.r,2.5,0,TAU); ctx.fill(); } }
   if(p.invuln>0&&Math.floor(p.invuln*20)%2)ctx.globalAlpha=0.45;
@@ -787,7 +787,7 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
   // auras
   for(const key in player.weapons){ const def=WEAPONS[key]; if(def.k!=='aura')continue; const w=player.weapons[key],s=wstat(def,w); const em=w.evo?EVOS[key].mult:null; const radius=s.rad*player.areaMul*(em&&em.rad?em.rad:1);
     ctx.beginPath(); ctx.arc(player.x,player.y,radius,0,TAU); ctx.fillStyle=def.c+'22'; ctx.fill(); ctx.strokeStyle=def.c+'66'; ctx.lineWidth=2; ctx.stroke(); }
-  ctx.save(); ctx.globalAlpha=0.34; ctx.fillStyle='#000'; ctx.beginPath(); ctx.ellipse(player.x,player.y+player.r*1.15,player.r*1.1,player.r*0.5,0,0,TAU); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.globalAlpha=0.34; ctx.fillStyle='#000'; ctx.beginPath(); ctx.ellipse(player.x,player.y+player.r*1.5,player.r*1.6,player.r*0.7,0,0,TAU); ctx.fill(); ctx.restore();
   drawPlayer();
   for(const p of particles){ ctx.globalAlpha=clamp(p.life/p.max,0,1); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,TAU); ctx.fill(); } ctx.globalAlpha=1;
   ctx.textAlign='center';
