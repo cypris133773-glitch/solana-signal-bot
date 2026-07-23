@@ -199,6 +199,7 @@ function maxRanks(def){ let n=0; for(const p of weaponPerks(def))n+=p.max; retur
 function wstat(def,wp){ const s={}; for(const k in WDEF) s[k]=(def.base&&def.base[k]!=null)?def.base[k]:WDEF[k];
   if(wp&&wp.perks){ for(const p of weaponPerks(def)){ const r=wp.perks[p.id]||0; if(!r)continue;
     if(p.mul!=null)s[p.f]=s[p.f]*(1+p.mul*r); if(p.add!=null)s[p.f]=s[p.f]+p.add*r; } }
+  if(wp&&wp.orbitBonus)s.cnt=(s.cnt||0)+wp.orbitBonus; // +1 orbit per 4 levels
   return s; }
 
 // Evolutions: weaponKey + requiredPassive(min lvl) -> new stats boost & name
@@ -600,7 +601,8 @@ function updateGems(dt){ const p=player,pullR=100*p.magnetMul,pr2=pullR*pullR;
   if(potionRespawn>0){ potionRespawn-=dt; if(potionRespawn<=0)spawnPotion(); } }
 function gainXp(a){ const p=player; p.xp+=a*p.xpMul;
   while(p.xp>=p.xpNext){ p.xp-=p.xpNext; p.level++; p.xpNext=Math.floor(5+p.level*3.6+p.level*p.level*0.6); heal(10);
-    if(p.level%4===0)spawnMagnet();
+    if(p.level%4===0){ spawnMagnet();
+      const hw=p.weapons.hexstake; if(hw&&(hw.orbitBonus||0)<4){ hw.orbitBonus=(hw.orbitBonus||0)+1; floater('+HEXAGON',p.x,p.y-34,'#ffcf33',true); } }
     if(state==='playing'){ openLevelUp(); return; } } }
 
 /* ---------- upgrades / level up ---------- */
@@ -923,6 +925,6 @@ document.getElementById('reroll-btn').addEventListener('click',doReroll);
 renderBrandLogos();
 requestAnimationFrame(loop);
 
-if(location.search.indexOf('debug')!==-1){ window.__hs={ forceLevel:()=>{if(state==='playing')gainXp(player.xpNext);}, boss:()=>spawnBoss(), spawn:(k,dx,dy)=>spawnEnemy(k,player.x+(dx||100),player.y+(dy||0)), magnet:()=>spawnMagnet(),
+if(location.search.indexOf('debug')!==-1){ window.__hs={ forceLevel:()=>{if(state==='playing')gainXp(player.xpNext);}, boss:()=>spawnBoss(), spawn:(k,dx,dy)=>spawnEnemy(k,player.x+(dx||100),player.y+(dy||0)), magnet:()=>spawnMagnet(), setOrbs:(n)=>{player.weapons.hexstake.orbitBonus=n;}, getOrbs:()=>{const w=player.weapons.hexstake;return{bonus:w.orbitBonus||0,cnt:Math.round(wstat(WEAPONS.hexstake,w).cnt)};},
   snapshot:()=>({state,level:player.level,kills,wave,weapons:Object.keys(player.weapons).length,passives:Object.keys(player.passives).length,enemies:enemies.length}) }; }
 })();
