@@ -1,0 +1,7 @@
+bot.py
+requirements.txt
+Dockerfile
+.dockerignore
+fly.toml
+.env.example
+README.md
