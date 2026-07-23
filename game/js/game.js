@@ -372,9 +372,9 @@ function spawnBoss(){ const b=BOSSES[bossCount%BOSSES.length]; const loop=Math.f
   const hp=b.hp*(1+bossCount*0.55)*(1+time/150);
   const e={kind:'boss',x:clamp(player.x+Math.cos(a)*d,150,WORLD.w-150),y:clamp(player.y+Math.sin(a)*d,150,WORLD.h-150),
     r:b.r+loop*4,hp,maxHp:hp,spd:b.spd,dmg:b.dmg*dmgScale(),xp:120+bossCount*40,b:'boss',sp:b.sp,c:b.c||'#6a2fb0',
-    hitFlash:0,knock:{x:0,y:0},boss:true,wob:0,bd:b,atkT:2.5,charge:0,name:'FUDSTER WALL',emoji:b.emoji,def:b};
+    hitFlash:0,knock:{x:0,y:0},boss:true,wob:0,bd:b,atkT:2.5,charge:0,name:'SCHUELER',emoji:b.emoji,def:b};
   enemies.push(e); boss=e; bossCount++;
-  toast('☠ FUDSTER WALL APPEARS','#ff3b5c'); screenShake=24; sfx('boss');
+  toast('☠ SCHUELER APPEARS','#ff3b5c'); screenShake=24; sfx('boss');
 }
 function updateThreat(){ let t='warmup';
   if(time>600)t='hell'; else if(time>420)t='nightmare'; else if(time>270)t='brutal';
