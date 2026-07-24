@@ -1031,7 +1031,8 @@ function goFullscreen(){ try{ const el=document.documentElement; const rq=el.req
   if(rq && !document.fullscreenElement && !document.webkitFullscreenElement) rq.call(el);
   if(screen.orientation&&screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
   }catch(_){} setTimeout(resize,120); }
-function startGame(){ audioInit(); initLevelSfx(); initPotionSfx(); startTrack(); if(isMobile())goFullscreen(); document.getElementById('app').classList.remove('hidden'); resize(); newRun();
+function startGame(){ const sb=document.getElementById('start-bg'); if(sb){ try{ sb.muted=true; sb.pause(); }catch(_){} }
+  audioInit(); initLevelSfx(); initPotionSfx(); startTrack(); if(isMobile())goFullscreen(); document.getElementById('app').classList.remove('hidden'); resize(); newRun();
   hide('start-screen'); hide('gameover-screen'); drawAvatar(); updateArsenal(); updateHud();
   document.getElementById('app').classList.remove('paused');
   state='playing'; lastTs=performance.now(); setTimeout(resize,200); }
@@ -1081,6 +1082,10 @@ function updateShopUI(){ const be=document.getElementById('shop-eth'); if(!be)re
     else { const c=shopCost(k); if(coEl)coEl.textContent='Ξ'+c; if(btn)btn.classList.toggle('afford',Math.floor(ethBank)>=c); } } }
 ['speed','damage','hp'].forEach(k=>{ const b=document.getElementById('buy-'+k); if(b)b.addEventListener('click',()=>buyUpgrade(k)); });
 
+// start-screen video: loop its own audio (unmuted on first user gesture) until the run starts
+(function(){ const v=document.getElementById('start-bg'); if(!v)return; v.volume=0.75;
+  function unmute(){ if(state!=='menu')return; try{ v.muted=false; const pr=v.play(); if(pr&&pr.catch)pr.catch(()=>{}); }catch(_){} }
+  ['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,unmute)); })();
 document.getElementById('start-btn').addEventListener('click',startGame);
 document.getElementById('restart-btn').addEventListener('click',startGame);
 document.getElementById('donate-copy').addEventListener('click',function(){ const btn=this; const a=document.getElementById('donate-addr').textContent.trim();
