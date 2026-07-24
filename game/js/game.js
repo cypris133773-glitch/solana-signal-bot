@@ -1083,8 +1083,11 @@ function updateShopUI(){ const be=document.getElementById('shop-eth'); if(!be)re
 ['speed','damage','hp'].forEach(k=>{ const b=document.getElementById('buy-'+k); if(b)b.addEventListener('click',()=>buyUpgrade(k)); });
 
 // start-screen video: loop its own audio (unmuted on first user gesture) until the run starts
-(function(){ const v=document.getElementById('start-bg'); if(!v)return; v.volume=0.75;
-  function unmute(){ if(state!=='menu')return; try{ v.muted=false; const pr=v.play(); if(pr&&pr.catch)pr.catch(()=>{}); }catch(_){} }
+(function(){ const v=document.getElementById('start-bg'); if(!v)return; v.volume=0.85;
+  // once the run starts, never let the clip's audio bleed into gameplay/pause (fixes play/pause race)
+  v.addEventListener('play',()=>{ if(state!=='menu'){ v.muted=true; try{v.pause();}catch(_){} } });
+  function unmute(){ if(state!=='menu'||!v.muted)return; try{ v.muted=false; const pr=v.play(); if(pr&&pr.catch)pr.catch(()=>{}); }catch(_){}
+    const h=document.getElementById('sound-hint'); if(h)h.classList.add('hidden'); }
   ['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,unmute)); })();
 document.getElementById('start-btn').addEventListener('click',startGame);
 document.getElementById('restart-btn').addEventListener('click',startGame);
