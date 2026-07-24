@@ -338,3 +338,27 @@ canvas#game{display:block;width:100%;height:100%;touch-action:none}
   .scr{max-height:86vh}
   .opt-row input[type=range]{width:90px}
 }
+
+/* ---------- character select ---------- */
+.menu-nav.four{grid-template-columns:repeat(4,1fr)}
+.menu-nav.four button{font-size:15px;padding:8px 2px}
+.menu-nav.four button span{font-size:10px}
+.char-card{display:flex;align-items:center;gap:11px;width:100%;padding:10px 11px;cursor:pointer;text-align:left;
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:12px;color:var(--ink);
+  font-family:inherit;transition:.12s}
+.char-card:hover{background:rgba(139,47,255,.18)}
+.cc-ic{font-size:26px;flex-shrink:0;width:32px;text-align:center}
+.cc-body{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cc-body b{font-size:14px;font-weight:900;letter-spacing:.5px}
+.cc-body small{font-size:11px;color:var(--muted)}
+.cc-stats{display:flex;gap:7px;margin-top:4px;flex-wrap:wrap}
+.cc-stats i{font-style:normal;font-size:10px;font-weight:800;padding:2px 6px;border-radius:5px;
+  background:rgba(255,255,255,.08);color:var(--muted)}
+.cc-stats i.up{background:rgba(59,255,122,.16);color:#7dffab}
+.cc-stats i.down{background:rgba(255,59,92,.16);color:#ff8fa3}
+.cc-tag{font-size:14px;font-weight:900;color:#c9ccff;flex-shrink:0}
+.char-card.sel{border-color:var(--gold);box-shadow:0 0 14px rgba(255,207,51,.35);background:rgba(255,207,51,.08)}
+.char-card.sel .cc-tag{color:var(--gold);font-size:18px}
+.char-card.locked{opacity:.62}
+.char-card.locked .cc-ic{filter:grayscale(1)}
+.char-card.shake{animation:lsshake .3s}
