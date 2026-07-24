@@ -380,7 +380,7 @@ function spawnEnemy(kind,ox,oy,scaleMul){ if(enemies.length>230)return;
   if(ox!==undefined){x=ox;y=oy;} else{ const a=rand(0,TAU),d=Math.min(Math.max(W,H)*0.6,560)+rand(0,120);
     x=clamp(player.x+Math.cos(a)*d,20,WORLD.w-20); y=clamp(player.y+Math.sin(a)*d,20,WORLD.h-20); }
   const hs=hpScale()*(scaleMul||1), ds=dmgScale();
-  enemies.push({kind,x,y,r:def.r,hp:def.hp*hs,maxHp:def.hp*hs,spd:def.spd*0.85*(1+time*0.004),dmg:def.dmg*ds,xp:def.xp,
+  enemies.push({kind,x,y,r:def.r,hp:def.hp*hs,maxHp:def.hp*hs,spd:Math.min(player.baseSpeed*0.9,def.spd*0.85*(1+time*0.002)),dmg:def.dmg*ds,xp:def.xp,
     b:def.b,sp:def.sp,c:def.c,baseR:def.r,hitFlash:0,knock:{x:0,y:0},boss:false,wob:rand(0,TAU),t1:rand(0,2),t2:0,def});
 }
 function spawnBoss(){ const b=BOSSES[bossCount%BOSSES.length]; const loop=Math.floor(bossCount/BOSSES.length);
@@ -397,8 +397,9 @@ function updateThreat(){ let t='warmup';
   else if(time>150)t='heating up'; else if(time>60)t='rising'; else t='warmup';
   document.getElementById('threat').textContent=t; }
 function updateSpawning(dt){
-  spawnTimer-=dt; const interval=Math.max(0.14,0.85-time/200);
-  if(spawnTimer<=0){ spawnTimer=interval; const batch=1+Math.floor(time/28);
+  spawnTimer-=dt; const interval=Math.max(0.18,0.85-time/200);
+  const cap=Math.min(150,70+time*0.28); // hard limit on on-screen enemies so you can't get boxed in
+  if(spawnTimer<=0 && enemies.length<cap){ spawnTimer=interval; const batch=1+Math.floor(time/28);
     for(let i=0;i<batch;i++){ spawnEnemy(rollEnemyKind()); }
   }
   bossTimer-=dt; if(bossTimer<=0 && !boss){ bossTimer=BOSS_INTERVAL*Math.max(0.6,1-bossCount*0.03); spawnBoss(); }
@@ -555,7 +556,7 @@ function updatePlayer(dt){ const p=player; const inp=readInput(); if(inp.x||inp.
   if(comboT>0){ comboT-=dt; if(comboT<=0)combo=0; }
 }
 function hurt(dmg){ const p=player; if(p.invuln>0)return; if(Math.random()<p.dodge){ floater('DODGE',p.x,p.y-20,'#00e5ff',true); return; }
-  dmg=Math.max(1,dmg-p.armor); p.hp-=dmg; p.invuln=0.55; screenShake=Math.max(screenShake,8); burst(p.x,p.y,'#ff3b5c',10);
+  dmg=Math.max(1,dmg-p.armor); p.hp-=dmg; p.invuln=0.65; screenShake=Math.max(screenShake,8); burst(p.x,p.y,'#ff3b5c',10);
   floater('-'+Math.round(dmg),p.x,p.y-20,'#ff3b5c',false); sfx('hurt');
   if(p.hp<=0){ if(p.revives>0){ p.revives--; p.hp=p.maxHp*0.5; p.invuln=1.5; toast('🔁 SECOND SACRIFICE','#ffcf33'); burst(p.x,p.y,'#ffcf33',40); }
     else { p.hp=0; gameOver(); } } }
