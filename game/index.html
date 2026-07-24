@@ -103,7 +103,8 @@
     <div class="logo"><span class="io">Hex</span>Survivor</div>
     <div class="subtitle">Richard Heart vs The Bear Market</div>
     <button id="start-btn" class="btn-primary">▶ PLAY</button>
-    <div class="menu-nav">
+    <div class="menu-nav four">
+      <button id="nav-chars">🎭<span>Heroes</span></button>
       <button id="nav-upgrades">⬆<span>Upgrades</span></button>
       <button id="nav-options">⚙<span>Options</span></button>
       <button id="nav-stats">📊<span>Stats</span></button>
@@ -111,6 +112,16 @@
     <div class="menu-bank">BANKED <b>Ξ<span id="menu-eth">0</span></b></div>
     <div class="how-to"><span class="k">WASD</span> · hold <span class="k">Mouse</span> · or drag to move · you auto-attack</div>
     <div class="disclaimer">Parody fan game. Not affiliated with HEX / PulseChain. Not financial advice.</div>
+  </div>
+</div>
+
+<!-- CHARACTER SELECT -->
+<div id="chars-screen" class="overlay hidden">
+  <div class="panel wide scr">
+    <div class="scr-head"><div class="scr-title">🎭 CHOOSE YOUR HERO</div>
+      <div class="scr-sub">Unlock with banked ETH · <b>Ξ<span id="ch-eth">0</span></b></div></div>
+    <div id="char-list" class="meta-list"></div>
+    <button class="btn-back" data-back>← Back</button>
   </div>
 </div>
 
