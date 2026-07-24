@@ -80,7 +80,27 @@ canvas#game{display:block;width:100%;height:100%;touch-action:none}
 #left-panel,#right-panel{position:absolute;bottom:10px;width:clamp(84px,15vw,150px);
   display:flex;flex-direction:column;gap:8px;z-index:4;pointer-events:none}
 #left-panel{left:8px;top:66px}
-#right-panel{right:8px;top:120px}
+#right-panel{right:8px;top:300px}
+/* ---------- LVL SHOP ---------- */
+#lvlshop{position:absolute;top:116px;right:8px;z-index:6;width:clamp(126px,17vw,168px);
+  background:linear-gradient(160deg,rgba(28,15,56,.92),rgba(16,7,34,.94));
+  border:1px solid var(--stroke);border-radius:13px;padding:8px;display:flex;flex-direction:column;gap:6px;
+  backdrop-filter:blur(6px);box-shadow:0 6px 24px rgba(0,0,0,.45)}
+.ls-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;
+  letter-spacing:.5px;color:var(--gold)}
+.ls-eth{color:#c9ccff;font-weight:800;font-size:12px}
+.ls-buy{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:9px;padding:5px 8px;
+  color:var(--ink);cursor:pointer;font-family:inherit;transition:.12s}
+.ls-buy b{font-size:12px;font-weight:800}
+.ls-sub{font-size:10px;opacity:.72}
+.ls-buy.afford{border-color:#8f9bff;box-shadow:0 0 10px rgba(143,155,255,.4)}
+.ls-buy.afford:hover{background:rgba(143,155,255,.2)}
+.ls-buy.maxed{opacity:.45;cursor:default}
+.ls-buy.shake{animation:lsshake .3s}
+@keyframes lsshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.eth-ic{color:#c9ccff;font-weight:800}
+@media (pointer:coarse), (max-width:820px){ #lvlshop{top:60px;width:clamp(118px,34vw,150px);padding:6px} .ls-buy b{font-size:11px} }
 .side-box{background:var(--panel);border:1px solid var(--stroke);border-radius:13px;padding:8px 9px;
   backdrop-filter:blur(6px);pointer-events:auto}
 .side-box.grow{flex:1;overflow-y:auto;overflow-x:hidden}
