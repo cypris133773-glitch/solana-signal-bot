@@ -40,8 +40,9 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--ink);
 /* ---------- TOP BAR ---------- */
 #topbar{position:absolute;top:0;left:0;right:0;z-index:5;
   padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) 8px calc(8px + env(safe-area-inset-left));
-  display:flex;align-items:flex-start;gap:8px;justify-content:space-between;pointer-events:none;
-  background:linear-gradient(180deg,rgba(7,5,16,.85),rgba(7,5,16,0))}
+  display:flex;align-items:flex-start;gap:8px;justify-content:space-between;pointer-events:none}
+#topbar::before{content:'';position:absolute;left:0;right:0;top:0;height:100px;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(7,5,16,.9),rgba(7,5,16,0))}
 #topbar>*{pointer-events:auto}
 .avatar-card{display:flex;gap:11px;background:var(--panel);border:1px solid var(--stroke);
   border-radius:18px;padding:8px 15px 8px 8px;backdrop-filter:blur(6px)}
@@ -92,9 +93,9 @@ canvas#game{display:block;width:100%;height:100%;touch-action:none}
 #pausebanner small{font-size:15px;font-weight:700;letter-spacing:1px;color:var(--muted)}
 #app.paused #pausebanner{display:flex}
 /* ---------- LVL SHOP ---------- */
-#lvlshop{position:absolute;top:210px;right:8px;z-index:6;width:clamp(132px,17vw,176px);
-  background:linear-gradient(160deg,rgba(28,15,56,.92),rgba(16,7,34,.94));
-  border:1px solid var(--stroke);border-radius:13px;padding:8px;display:flex;flex-direction:column;gap:6px;
+#lvlshop{width:clamp(150px,18vw,182px);margin-top:2px;
+  background:linear-gradient(160deg,rgba(28,15,56,.94),rgba(16,7,34,.96));
+  border:1px solid var(--stroke);border-radius:13px;padding:9px;display:flex;flex-direction:column;gap:6px;
   backdrop-filter:blur(6px);box-shadow:0 6px 24px rgba(0,0,0,.45)}
 .ls-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;
   letter-spacing:.5px;color:var(--gold)}
@@ -110,7 +111,7 @@ canvas#game{display:block;width:100%;height:100%;touch-action:none}
 .ls-buy.shake{animation:lsshake .3s}
 @keyframes lsshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .eth-ic{color:#c9ccff;font-weight:800}
-@media (pointer:coarse), (max-width:820px){ #lvlshop{top:150px;width:clamp(120px,32vw,152px);padding:6px} .ls-buy b{font-size:11px}
+@media (pointer:coarse), (max-width:820px){ #lvlshop{width:clamp(128px,34vw,158px);padding:6px} .ls-buy b{font-size:11px}
   #app.paused #left-panel,#app.paused #right-panel{display:flex !important} }
 .side-box{background:var(--panel);border:1px solid var(--stroke);border-radius:13px;padding:8px 9px;
   backdrop-filter:blur(6px);pointer-events:auto}
