@@ -920,7 +920,7 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
   ctx.globalCompositeOperation='lighter';
   for(const b of bullets){ ctx.globalAlpha=0.4; ctx.fillStyle=b.color; ctx.beginPath(); ctx.arc(b.x,b.y,b.r*2.3,0,TAU); ctx.fill(); }
   ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
-  if(burgerReady){ const fw=BURGER_SHEET.fw,fh=BURGER_SHEET.fh; for(const b of bullets){ const w=Math.max(20,b.r*4.2), h=w*fh/fw, fr=Math.floor(time*16+b.x*0.05)%BURGER_SHEET.count; ctx.drawImage(burgerImg, fr*fw,0,fw,fh, b.x-w/2,b.y-h/2, w,h); } }
+  if(burgerReady){ const fw=BURGER_SHEET.fw,fh=BURGER_SHEET.fh; for(const b of bullets){ const w=Math.max(30,b.r*6.3), h=w*fh/fw, fr=Math.floor(time*16+b.x*0.05)%BURGER_SHEET.count; ctx.drawImage(burgerImg, fr*fw,0,fw,fh, b.x-w/2,b.y-h/2, w,h); } }
   else if(BURGER){ for(const b of bullets){ const bs=Math.max(17,b.r*3.6); ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(time*9+b.x*0.03); ctx.drawImage(BURGER,-bs/2,-bs/2,bs,bs); ctx.restore(); } }
   else for(const b of bullets){ ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,TAU); ctx.fillStyle=orbGrad(ctx,b.x,b.y,b.r,b.color); ctx.fill(); }
   // orbit shields
