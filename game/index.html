@@ -75,7 +75,14 @@
       <canvas id="game"></canvas>
       <div id="joystick" class="hidden"><div id="joystick-knob"></div></div>
       <div id="combo" class="hidden"></div>
-      <div id="pausebanner">❚❚ PAUSED<small>tap ❚❚ to resume</small></div>
+      <div id="pausebanner">
+        <div class="pm-title">❚❚ PAUSED</div>
+        <div class="pm-btns">
+          <button id="pm-resume" class="btn-primary">▶ Resume</button>
+          <button id="pm-restart">↻ Restart run</button>
+          <button id="pm-quit">⌂ Quit to menu</button>
+        </div>
+      </div>
     </main>
 
     <aside id="right-panel">
@@ -95,9 +102,58 @@
     <div class="startlogo"><canvas id="brandhex" width="130" height="130"></canvas><canvas id="brandpulse" width="130" height="130"></canvas></div>
     <div class="logo"><span class="io">Hex</span>Survivor</div>
     <div class="subtitle">Richard Heart vs The Bear Market</div>
-    <button id="start-btn" class="btn-primary">▶ START RUN</button>
+    <button id="start-btn" class="btn-primary">▶ PLAY</button>
+    <div class="menu-nav">
+      <button id="nav-upgrades">⬆<span>Upgrades</span></button>
+      <button id="nav-options">⚙<span>Options</span></button>
+      <button id="nav-stats">📊<span>Stats</span></button>
+    </div>
+    <div class="menu-bank">BANKED <b>Ξ<span id="menu-eth">0</span></b></div>
     <div class="how-to"><span class="k">WASD</span> · hold <span class="k">Mouse</span> · or drag to move · you auto-attack</div>
     <div class="disclaimer">Parody fan game. Not affiliated with HEX / PulseChain. Not financial advice.</div>
+  </div>
+</div>
+
+<!-- PERMANENT UPGRADES -->
+<div id="upgrades-screen" class="overlay hidden">
+  <div class="panel wide scr">
+    <div class="scr-head"><div class="scr-title">⬆ PERMANENT UPGRADES</div>
+      <div class="scr-sub">Banked ETH carries between runs · <b>Ξ<span id="up-eth">0</span></b></div></div>
+    <div id="meta-list" class="meta-list"></div>
+    <button class="btn-back" data-back>← Back</button>
+  </div>
+</div>
+
+<!-- OPTIONS -->
+<div id="options-screen" class="overlay hidden">
+  <div class="panel scr">
+    <div class="scr-head"><div class="scr-title">⚙ OPTIONS</div></div>
+    <div class="opt-row"><label>Master volume</label><input id="opt-master" type="range" min="0" max="100" /><span id="lb-master">85%</span></div>
+    <div class="opt-row"><label>Music</label><input id="opt-music" type="range" min="0" max="100" /><span id="lb-music">50%</span></div>
+    <div class="opt-row"><label>Sound effects</label><input id="opt-sfx" type="range" min="0" max="100" /><span id="lb-sfx">60%</span></div>
+    <div class="opt-row"><label>Screen shake</label><button id="opt-shake" class="toggle">ON</button></div>
+    <div class="opt-row"><label>High quality FX</label><button id="opt-quality" class="toggle">ON</button></div>
+    <button id="opt-reset" class="btn-danger">Reset all progress</button>
+    <button class="btn-back" data-back>← Back</button>
+  </div>
+</div>
+
+<!-- STATS + ACHIEVEMENTS -->
+<div id="stats-screen" class="overlay hidden">
+  <div class="panel wide scr">
+    <div class="scr-head"><div class="scr-title">📊 CAREER</div>
+      <div class="scr-sub">Achievements <b><span id="sx-ach">0 / 14</span></b></div></div>
+    <div class="stat-grid">
+      <div><span id="sx-best">00:00</span><small>Best time</small></div>
+      <div><span id="sx-lvl">1</span><small>Best level</small></div>
+      <div><span id="sx-kills">0</span><small>Total kills</small></div>
+      <div><span id="sx-bosses">0</span><small>Bosses slain</small></div>
+      <div><span id="sx-runs">0</span><small>Runs played</small></div>
+      <div><span id="sx-eth">0</span><small>ETH earned</small></div>
+      <div><span id="sx-play">0m</span><small>Time played</small></div>
+    </div>
+    <div id="ach-list" class="ach-list"></div>
+    <button class="btn-back" data-back>← Back</button>
   </div>
 </div>
 
@@ -121,12 +177,18 @@
       <div><span id="ro-kills">0</span><small>Kills</small></div>
     </div>
     <div class="best" id="best-line"></div>
+    <div class="go-reward">
+      <div class="gr-main">Banked this run <b id="ro-earned">Ξ0</b></div>
+      <div class="gr-sub">Total banked <b id="ro-bank">Ξ0</b> · spend it in Upgrades</div>
+    </div>
+    <div id="go-ach" class="hidden"></div>
     <div class="donate">
       <div class="donate-title">💜 If you like this game, donate to a rekt pleb</div>
       <div class="donate-addr" id="donate-addr">0x965716147150352c49aeed3768124df1b0f7d89d</div>
       <button class="donate-copy" id="donate-copy">📋 Copy address</button>
     </div>
     <button id="restart-btn" class="btn-primary">↻ RUN IT BACK</button>
+    <button id="go-menu" class="btn-back">⌂ Main menu</button>
   </div>
 </div>
 
