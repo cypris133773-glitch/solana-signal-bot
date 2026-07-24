@@ -948,6 +948,7 @@ function goFullscreen(){ try{ const el=document.documentElement; const rq=el.req
   }catch(_){} setTimeout(resize,120); }
 function startGame(){ audioInit(); initLevelSfx(); initPotionSfx(); startTrack(); if(isMobile())goFullscreen(); document.getElementById('app').classList.remove('hidden'); resize(); newRun();
   hide('start-screen'); hide('gameover-screen'); drawAvatar(); updateArsenal(); updateHud();
+  document.getElementById('app').classList.remove('paused');
   state='playing'; lastTs=performance.now(); setTimeout(resize,200); }
 function gameOver(){ state='over'; sfx('death');
   document.getElementById('gameover-flavor').textContent=pick(DEATH_FLAVORS);
@@ -959,7 +960,8 @@ function saveBest(){ try{ const best=JSON.parse(localStorage.getItem('hexsurvivo
     const cur={time,wave,level:player.level,kills}; const better=cur.time>(best.time||0);
     if(better)localStorage.setItem('hexsurvivor_best',JSON.stringify(cur)); const b=better?cur:best;
     if(b.time!==undefined)document.getElementById('best-line').textContent=`Best: ${fmtTime(b.time)} · Wave ${b.wave} · Lv ${b.level} · ${b.kills} kills`; }catch(_){} }
-function togglePause(){ if(state==='playing')state='paused'; else if(state==='paused'){state='playing';lastTs=performance.now();} }
+function togglePause(){ if(state==='playing')state='paused'; else if(state==='paused'){state='playing';lastTs=performance.now();}
+  document.getElementById('app').classList.toggle('paused',state==='paused'); }
 function toggleMute(){ A.on=!A.on; const b=document.getElementById('mute-btn'); b.textContent=A.on?'♪':'✕'; b.classList.toggle('off',!A.on);
   if(musicEl)musicEl.muted=!A.on;
   if(A.master&&A.ctx)A.master.gain.setValueAtTime(A.on?0.85:0,A.ctx.currentTime); }
