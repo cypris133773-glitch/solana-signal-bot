@@ -1,0 +1,30 @@
+{
+  "name": "hexquest",
+  "productName": "HEXQUEST",
+  "version": "1.0.0",
+  "description": "HEXQUEST: The Sacrifice Phase — a most cringeworthy medieval chronicle",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "copy": "node -e \"require('fs').copyFileSync('../index.html','index.html')\"",
+    "start": "npm run copy && electron .",
+    "dist": "npm run copy && electron-builder",
+    "dist:win": "npm run copy && electron-builder --win",
+    "dist:mac": "npm run copy && electron-builder --mac",
+    "dist:linux": "npm run copy && electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.hexquest.game",
+    "productName": "HEXQUEST",
+    "files": ["main.js", "package.json", "index.html"],
+    "directories": { "output": "build" },
+    "//": "Steam ships unpacked folders via SteamPipe, so every target is 'dir'.",
+    "win": { "target": "dir" },
+    "mac": { "target": "dir", "category": "public.app-category.games" },
+    "linux": { "target": "dir", "category": "Game" }
+  }
+}

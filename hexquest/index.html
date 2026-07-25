@@ -1,0 +1,1384 @@
+<title>HEXQUEST: The Sacrifice Phase</title>
+
+<style>
+  :root{
+    color-scheme: dark;
+    /* Illuminated manuscript by torchlight: charred oak, gold leaf, vermilion ink, verdigris */
+    --ink:#140D08;
+    --ink2:#0C0704;
+    --panel:#2A1B0C;
+    --panel2:#1B1107;
+    --edge:#4A2F14;
+    --gold:#E8B33C;
+    --gold-hi:#FFE9A8;
+    --verm:#C8342A;
+    --verd:#3FA382;
+    --parch:#EDE0C8;
+    --muted:#A08A6A;
+
+    --display:"Palatino Linotype","Book Antiqua","Palatino","Iowan Old Style",Georgia,serif;
+    --body:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+
+    --s1:.4rem; --s2:.75rem; --s3:1.15rem;
+  }
+  :root[data-theme="light"], :root[data-theme="dark"]{ color-scheme: dark; }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 640px at 50% -8%, #2E1D0B 0%, transparent 62%),
+      radial-gradient(800px 460px at 50% 108%, #241608 0%, transparent 58%),
+      var(--ink2);
+    color:var(--parch);
+    font-family:var(--body);
+    font-size:15.5px;
+    line-height:1.62;
+    min-height:100vh;
+    padding:var(--s2);
+    display:flex;
+    justify-content:center;
+  }
+
+  .cabinet{ width:100%; max-width:1180px; display:flex; flex-direction:column; gap:var(--s2); }
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    border:2px solid var(--edge);
+    background:linear-gradient(180deg,#33200E 0%, var(--panel2) 100%);
+    border-radius:2px;
+    padding:var(--s2) var(--s3);
+    display:flex; align-items:center; justify-content:space-between; gap:var(--s2); flex-wrap:wrap;
+    position:relative;
+  }
+  .masthead::before{
+    content:""; position:absolute; inset:4px; border:1px solid rgba(232,179,60,.28); pointer-events:none;
+  }
+  .wordmark{
+    font-family:var(--display);
+    font-size:clamp(1.9rem,5vw,3rem);
+    line-height:.95; letter-spacing:.06em; text-transform:uppercase; font-weight:700;
+    background:linear-gradient(180deg,var(--gold-hi) 0%, var(--gold) 48%, #8C5E14 56%, #FFDE96 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 2px 0 rgba(0,0,0,.6);
+    margin:0;
+  }
+  .wordmark small{
+    display:block; font-family:var(--body); font-style:italic; font-weight:400;
+    font-size:.62rem; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--verm); -webkit-text-fill-color:var(--verm); text-shadow:none; margin-top:.55rem;
+  }
+  .parody{
+    font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--muted); border:1px solid var(--edge); padding:.35rem .55rem;
+    max-width:23rem; line-height:1.6; margin:0;
+  }
+
+  /* ---------- HUD ---------- */
+  .hud{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:var(--s1) var(--s2);
+    border:2px solid var(--edge); background:var(--panel2); padding:var(--s2) var(--s3);
+  }
+  .meter .lbl{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--mono); font-size:.58rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+  }
+  .meter .lbl b{ color:var(--parch); font-variant-numeric:tabular-nums; letter-spacing:0; font-weight:400; }
+  .bar{ height:9px; background:#0B0604; border:1px solid var(--edge); overflow:hidden; margin-top:3px; }
+  .bar i{ display:block; height:100%; width:0%; transition:width .35s ease; }
+  .bar.hp i{ background:linear-gradient(90deg,#8C1F16,var(--verm)); }
+  .bar.cope i{ background:linear-gradient(90deg,#1E6B55,var(--verd)); }
+  .bar.xp i{ background:linear-gradient(90deg,#5B3E86,#A97BD8); }
+  .bar.cringe i{ background:linear-gradient(90deg,#8C5E14,var(--gold),var(--gold-hi)); }
+  .bar.cringe.full{ animation:pulse .75s infinite alternate; }
+  @keyframes pulse{ to{ filter:brightness(1.55); } }
+
+  /* ---------- stage ---------- */
+  .stage{ display:grid; grid-template-columns:minmax(0,420px) minmax(0,1fr); gap:var(--s2); }
+  @media (max-width:820px){ .stage{ grid-template-columns:1fr; } }
+
+  .screen{ border:2px solid var(--edge); background:#0A0503; overflow:hidden; position:relative;
+    display:flex; flex-direction:column; align-self:start; }
+  canvas{ display:block; width:100%; height:auto; image-rendering:pixelated; }
+  .screen::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,.55) 100%);
+  }
+  .nameplate{
+    font-family:var(--display); text-transform:uppercase; letter-spacing:.16em; font-size:.82rem; font-weight:700;
+    color:var(--gold); padding:.42rem var(--s2); border-top:2px solid var(--edge); background:var(--panel2);
+    display:flex; justify-content:space-between; align-items:center; gap:var(--s2);
+  }
+  .nameplate span{ font-family:var(--mono); font-size:.58rem; letter-spacing:.18em; color:var(--muted); }
+
+  .console{ border:2px solid var(--edge); background:var(--panel2); display:flex; flex-direction:column; min-height:440px; }
+  #log{ flex:1; overflow-y:auto; padding:var(--s3); max-height:47vh; scrollbar-width:thin; scrollbar-color:var(--edge) transparent; }
+  #log p{ margin:0 0 .75rem; max-width:64ch; }
+  #log p:last-child{ margin-bottom:0; }
+  .say{ color:var(--parch); }
+  .npc{ color:var(--gold); font-style:italic; }
+  .npc b{ font-style:normal; }
+  .sys{ font-family:var(--mono); color:var(--muted); font-size:.74rem; letter-spacing:.1em; text-transform:uppercase; }
+  .good{ color:var(--verd); }
+  .bad{ color:var(--verm); }
+  .crit{ color:var(--gold-hi); font-weight:700; }
+  .chap{
+    font-family:var(--display); text-transform:uppercase; font-size:1.32rem; line-height:1.15; font-weight:700;
+    color:var(--gold); letter-spacing:.1em; text-wrap:balance;
+    border-bottom:1px solid var(--edge); padding-bottom:.45rem; margin:1.2rem 0 .85rem !important;
+  }
+  #log p.chap:first-child{ margin-top:0 !important; }
+  #log p.chap::before{ content:"❧ "; color:var(--verm); }
+
+  /* ---------- choices ---------- */
+  #choices{ border-top:2px solid var(--edge); padding:var(--s2); display:flex; flex-wrap:wrap; gap:var(--s1);
+    background:linear-gradient(180deg, rgba(232,179,60,.05), transparent); }
+  button{
+    font-family:var(--body); font-size:.87rem; color:var(--parch); background:var(--panel);
+    border:1px solid var(--edge); border-bottom-width:3px; padding:.52rem .72rem; cursor:pointer;
+    text-align:left; flex:1 1 auto; min-width:min(100%,195px);
+    transition:transform .08s, background .15s, border-color .15s, color .15s;
+  }
+  button:hover:not(:disabled){ background:#4A2F14; border-color:var(--gold); }
+  button:active:not(:disabled){ transform:translateY(2px); border-bottom-width:1px; }
+  button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  button:disabled{ opacity:.34; cursor:not-allowed; }
+  button .cost{ display:block; font-family:var(--mono); font-size:.6rem; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--muted); margin-top:.2rem; line-height:1.5; }
+  button.gold{ border-color:var(--gold); color:var(--gold); }
+  button.ult{ background:linear-gradient(90deg,#5A3A0C,#3A2409); border-color:var(--gold);
+    color:var(--gold-hi); font-weight:700; animation:pulse .85s infinite alternate; }
+
+  /* ---------- rail ---------- */
+  .rail{ display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:var(--s2); }
+  .card{ border:2px solid var(--edge); background:var(--panel2); padding:var(--s2) var(--s3); }
+  .card h3{ font-family:var(--mono); font-size:.58rem; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--verm); margin:0 0 .6rem; font-weight:400; }
+  .kv{ display:flex; justify-content:space-between; gap:var(--s2); font-size:.82rem; padding:.14rem 0; }
+  .kv span{ color:var(--muted); }
+  .kv b{ font-weight:400; font-family:var(--mono); font-size:.78rem; font-variant-numeric:tabular-nums; }
+  .chips{ display:flex; flex-wrap:wrap; gap:.3rem; }
+  .chip{ font-family:var(--mono); font-size:.6rem; letter-spacing:.08em; text-transform:uppercase;
+    border:1px solid var(--edge); padding:.2rem .42rem; color:var(--muted); }
+  .chip.on{ border-color:var(--verd); color:var(--verd); }
+  .chip.off{ border-color:var(--verm); color:var(--verm); }
+  .chip.gold{ border-color:var(--gold); color:var(--gold); }
+  .empty{ color:var(--muted); font-size:.8rem; font-style:italic; }
+
+  .ticker{ border:2px solid var(--edge); background:#0A0503; overflow:hidden; white-space:nowrap; padding:.42rem 0; }
+  .ticker div{ display:inline-block; padding-left:100%; animation:scroll 52s linear infinite;
+    font-family:var(--body); font-style:italic; font-size:.78rem; color:var(--muted); }
+  .ticker b{ color:var(--gold); font-style:normal; font-weight:400; }
+  @keyframes scroll{ to{ transform:translateX(-100%); } }
+
+  footer{ font-family:var(--mono); color:var(--muted); font-size:.6rem; letter-spacing:.1em;
+    text-transform:uppercase; text-align:center; padding:.4rem 0 1rem; line-height:1.9; }
+
+  @media (prefers-reduced-motion:reduce){
+    *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    .ticker div{ animation:none; padding-left:1rem; }
+  }
+</style>
+
+<div class="cabinet">
+
+  <header class="masthead">
+    <h1 class="wordmark">HEXQUEST<small>A Most Cringeworthy Chronicle of the Sacrifice Phase</small></h1>
+    <p class="parody">Mature content · 18+ · Parody. Fictional persons, fictional coin, fictional realm. Contains coarse language, cartoon gore, and a nobleman describing a watch for forty minutes.</p>
+  </header>
+
+  <section class="hud" id="hud" aria-label="Status"></section>
+
+  <div class="stage">
+    <div class="screen">
+      <canvas id="cv" width="420" height="300" aria-label="Game scene"></canvas>
+      <div class="nameplate"><b id="place">THE TITLE PAGE</b><span id="clock">YEAR ONE</span></div>
+    </div>
+    <div class="console">
+      <div id="log" role="log" aria-live="polite"></div>
+      <div id="choices"></div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="card"><h3>The Character</h3><div id="sheet"></div></div>
+    <div class="card"><h3>Afflictions &amp; Boons</h3><div id="effects"></div></div>
+    <div class="card"><h3>Quest Journal</h3><div id="quests"></div></div>
+    <div class="card"><h3>Purse &amp; Pack</h3><div id="bags"></div></div>
+  </div>
+
+  <div class="ticker" aria-hidden="true"><div id="tick"></div></div>
+
+  <footer>
+    HEXQUEST v1.0 &nbsp;·&nbsp; A work of satire &nbsp;·&nbsp; No real person, coin, or realm is depicted<br>
+    Thy progress is inscribed upon this browser
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   LORE — every proper noun lives here. One edit renames the realm.
+   ============================================================ */
+const LORE = {
+  FOUNDER:"Richard Heartburn",
+  FOUNDER_TITLE:"the Gilded Fae-Lord",
+  ORDER:"the Order of the Gilded Hand",
+  MEMBER:"Gildsman",
+  COIN:"gilders",
+  REALM:"Throbmarch",
+  OLDROAD:"the Old Road",
+  CHANCERY:"the Chancery of Vibes",
+  BRAND:"DUCCI"
+};
+
+/* ============================================================
+   PIXEL ART — 16x16, char-keyed palettes
+   ============================================================ */
+const SPR = {
+  survivor:{ pal:{g:"#8E8A99",f:"#E8B58C",k:"#140D08",w:"#DDD6E8",b:"#5B4A2E",s:"#E8B33C"}, rows:[
+    "................","......gggg......",".....gggggg.....","....gffffffg....",
+    "....fkffffkf....","....ffffffff....",".....wwwwww.....","...bbbbbbbbbb...",
+    "..bbbbbbbbbbbb..","..bsbbbbbbbbsb..","..bbbbbbbbbbbb..","...bbbbbbbbbb...",
+    "....bb....bb....","....bb....bb....","...kkk....kkk...","................"]},
+  cleric:{ pal:{g:"#EDE0C8",f:"#E8B58C",k:"#140D08",w:"#3FA382",b:"#3A5B7A",s:"#BFE6FF"}, rows:[
+    "................","......gggg......",".....gggggg.....","....gffffffg....",
+    "....fkffffkf....","....ffffffff....",".....wwwwww.....","...bbbbbbbbbb...",
+    "..bbbbsbbsbbbb..","..bbbbbssbbbbb..","..bbbbsbbsbbbb..","...bbbbbbbbbb...",
+    "....bb....bb....","....bb....bb....","...kkk....kkk...","................"]},
+  goblin:{ pal:{g:"#7EA857",f:"#7EA857",k:"#140D08",w:"#E8B33C",b:"#3E2A18",s:"#C8342A"}, rows:[
+    "................","...g..........g.","...gg.gggg...gg.","....gffffffg....",
+    "....fkffffkf....","....ffwwwwff....",".....ffffff.....","...bbbbbbbbbb...",
+    "..bbbsbbbbsbbb..","..bbbbbbbbbbbb..","..bbbbbbbbbbbb..","...bbbbbbbbbb...",
+    "....bb....bb....","....bb....bb....","...ggg....ggg...","................"]},
+  rogue:{ pal:{g:"#2A1B10",f:"#E8B58C",k:"#140D08",w:"#C8342A",b:"#1F1508",s:"#5B3E86"}, rows:[
+    "................",".....gggggg.....","....gggggggg....","....gffffffg....",
+    "....fwffffwf....","....ffffffff....",".....gggggg.....","...bbbbbbbbbb...",
+    "..bbsbbbbbbsbb..","..bbbbbbbbbbbb..","..bbbbbbbbbbbb..","...bbbbbbbbbb...",
+    "....bb....bb....","....bb....bb....","...kkk....kkk...","................"]},
+
+  paperhands:{ pal:{f:"#D8CFB8",k:"#140D08",w:"#C8342A",b:"#6E6048"}, rows:[
+    "................","....ffffffff....","...ffffffffff...","...fkkffffkkf...",
+    "...ffffffffff...","....ffwwwwff....","....ffffffff....","..bffffffffffb..",
+    ".bbffffffffffbb.","bb.ffffffffff.bb","...ffffffffff...","...ff......ff...",
+    "..fff......fff..","..ff........ff..","..kk........kk..","................"]},
+  hydra:{ pal:{s:"#3FA382",k:"#0A0503",w:"#C8342A",b:"#1E6B55",f:"#8CD8BE"}, rows:[
+    "..s....s....s...",".sss..sss..sss..",".sks..sks..sks..",".sss..sss..sss..",
+    "..s....s....s...","..ss..sss..ss...","...ssssssssss...","..bbbbbbbbbbbb..",
+    ".bbbfbbbbbbfbbb.","bbbbbbbbbbbbbbbb",".bbbbbbbbbbbbbb.","..bbbbbbbbbbbb..",
+    "...bb.bbbb.bb...","..bb....bb...bb.",".bb.....bb....bb","................"]},
+  kraken:{ pal:{b:"#4A3A6B",k:"#0A0503",w:"#E8B33C",f:"#8C7BB8",s:"#C8342A"}, rows:[
+    "................","....bbbbbbbb....","...bbbbbbbbbb...","..bbbbbbbbbbbb..",
+    "..bbwwbbbbwwbb..","..bbkwbbbbkwbb..","..bbbbbbbbbbbb..","..bbbbssssbbbb..",
+    "...bbbbbbbbbb...","..b.b.b..b.b.b..",".b.b.b.b.b.b.b.b","b.b.b.b.b.b.b.b.",
+    ".b...b...b...b..","b...b.....b...b.",".b.........b....","................"]},
+  chad:{ pal:{h:"#E8C86E",f:"#EFC3A0",k:"#140D08",w:"#FFFFFF",b:"#8C9AAE",s:"#E8B33C"}, rows:[
+    "................","....hhhhhhhh....","...hhhhhhhhhh...","...hffffffffh...",
+    "...fkfffffkff...","...ffffffffff...","....fwwwwwwf....","....ffffffff....",
+    "..bbbbbbbbbbbb..",".bbbbbbbbbbbbbb.","bbbsbbbbbbbbsbbb",".bbbbbbbbbbbbbb.",
+    "..bbbb....bbbb..","...bb......bb...","...kk......kk...","................"]},
+  karen:{ pal:{h:"#8C7048",f:"#EFC3A0",k:"#140D08",w:"#EDE0C8",b:"#3A3020",s:"#C8342A"}, rows:[
+    "................","...hhhhhhhhhh...","..hhhhhhhhhhhh..","..hffffffffffh..",
+    "..hfkffffffkfh..","..hffffffffffh..","...ffffffffff...","....ffwwwwff....",
+    "..bbbbbbbbbbbb..",".bbbwwwwwwwwbbb.",".bbbwwswwswwbbb.",".bbbwwwwwwwwbbb.",
+    "..bbbbbbbbbbbb..","...bb......bb...","...kk......kk...","................"]},
+  heartburn:{ pal:{h:"#3A2A1A",f:"#E8B58C",k:"#0A0503",w:"#FFFFFF",g:"#E8B33C",m:"#7A1030",v:"#BFE6FF"}, rows:[
+    "v..............v","vv..hhhhhhhh..vv","vvv.hhhhhhhh.vvv","vv.hffffffffh.vv",
+    "v..ffffffffff..v","...kkkkkkkkkk...","...kwkkkkkkwk...","...ffffffffff...",
+    "....ffffffff....",".....mmmmmm.....","..gggggggggggg..",".gggggggggggggg.",
+    "gggggggggggggggg","ggg.gggggggg.ggg",".gg..gggggg..gg.","....kk....kk...."]},
+  origin:{ pal:{k:"#0A0503",g:"#E8B33C",w:"#FFFFFF",n:"#C8342A",m:"#3FA382"}, rows:[
+    "..g..g.gg.g..g..",".ggggggggggggggg","gg.n.n.gg.n.n.gg","g.nnnnn..nnnnn.g",
+    "g.n.w.n..n.w.n.g","g.nnnnn..nnnnn.g","gg...........egg",".gg.gwwwwwwg.gg.","..gggwwwwwwggg..",
+    "...gggggggggg...","..g.gggggggg.g..",".g...gggggg...g.","g....gggggg....g",
+    "....gg....gg....","...gg......gg...","..g..........g.."]},
+  bat:{ pal:{k:"#140D08",w:"#C8342A",b:"#4A3A28"}, rows:[
+    "................","................","b..............b","bb....kkkk....bb",
+    "bbb..kkkkkk..bbb","bbbb.kwkkwk.bbbb",".bbb.kkkkkk.bbb.","..bb..kkkk..bb..",
+    "...b...kk...b...","................","................","................",
+    "................","................","................","................"]}
+};
+
+/* ============================================================
+   CLASSES
+   ============================================================ */
+const CLASSES = {
+  survivor:{
+    name:"Sacrifice-Phase Survivor", spr:"survivor",
+    blurb:"You tipped your entire inheritance into a hole in the ground in the Year of the First Sacrifice, and you have not shut your fucking mouth about it since. Your wife left. You told the tavern it was mutual. It was not mutual.",
+    bonus:{PUMP:2,COPE:2,PAPER:-2},
+    abilities:["hodl_slam","diamond_hands","sacrifice","show_chart"],
+    ult:{name:"THE FULL SACRIFICE", desc:"Burn half thy HP. Deal that much damage twice.",
+      run:()=>{ const burn=Math.floor(G.hp/2); G.hp-=burn;
+        hurt(burn*2,"You set your remaining estate alight, scream your ex-wife's name at the ceiling, and swing the burning ledger like a mace. Something in your back gives way. You will feel it at four in the morning for the rest of your life."); }}
+  },
+  cleric:{
+    name:"Copium Cleric", spr:"cleric",
+    blurb:"You keep an illuminated ledger proving the price is in fact <em>up</em>, if one changes the axis, the currency, and the meaning of the word up. You have not opened a shutter since Lent.",
+    bonus:{COPE:4,GALAXY:1,PUMP:-1},
+    abilities:["huff","mass_cope","deny","prediction"],
+    ult:{name:"PROPHECY OF THE TEN-THOUSANDFOLD", desc:"Fully heal. Deal damage equal to thy missing hope.",
+      run:()=>{ const miss=G.maxhp-G.hp; G.hp=G.maxhp; G.cope=G.maxcope;
+        hurt(28+miss,"You proclaim a price so obscene the enemy's abacus shits its beads across the flagstones. A single tear of pure copium runs down your cheek and dissolves a paving slab."); }}
+  },
+  gob:{
+    name:"Validator Goblin", spr:"goblin",
+    blurb:"You keep the realm's ledger in a cupboard beneath a stairwell. The cupboard is forty-one degrees. You have not bathed since the Great Fork. You have generated a personal climate and, within it, weather.",
+    bonus:{TIMING:3,PUMP:2,SHILL:-2},
+    abilities:["slash_fees","fork_it","uptime","gas_bomb"],
+    ult:{name:"THE ONE-AND-FIFTY-PERCENT ASSAULT", desc:"Five rapid strikes. Each rolls its own d20.",
+      run:()=>{ for(let i=0;i<5;i++){ const r=d20();
+        hurt(r>=18?24:9,"Strike "+(i+1)+" — d20 → "+r+". You fight with the terrible strength of a man who has eaten nothing but beige food since Michaelmas.");
+        if(C.enemy.hp<=0) break; } }}
+  },
+  rogue:{
+    name:"Reply-Knight Rogue", spr:"rogue",
+    blurb:"You have never had an original thought, but your marginal annotations have caused two annulments and one genuine hospitalisation. You write in the margins. Always. Even at Mass.",
+    bonus:{SHILL:3,TIMING:2,COPE:-1},
+    abilities:["ratio","dunk","subtweet","block"],
+    ult:{name:"THE INFINITE RATIO", desc:"Damage equal to SHILL × rounds elapsed. Applies Rekt.",
+      run:()=>{ hurt(G.stats.SHILL*Math.max(3,C.round),"Scrolls arrive faster than the enemy can physically read them. The pile reaches their chin. Then their nose. They are still reading. They are still replying.");
+        addFx(C.enemy,"rekt",3); }}
+  }
+};
+
+/* ============================================================
+   ABILITIES
+   ============================================================ */
+const ABIL = {
+  hodl_slam:{ name:"Hodl Slam", cost:0, cd:0, desc:"d20 + PUMP. Simple. Loud. Sweaty.",
+    run:()=>{ const r=roll("PUMP"); hurt(r.crit?r.total*2:r.total, r.line+" "+pick(GORE)); }},
+  diamond_hands:{ name:"Diamond Hands", cost:6, cd:3, desc:"Halve incoming damage, 3 rounds.",
+    run:()=>{ addFx(G,"diamond",3); say("Your hands calcify into two glittering, useless clubs. You could not sell now if a physician begged you. You also cannot wipe. That is a tomorrow problem.","good"); }},
+  sacrifice:{ name:"Sacrifice Phase", cost:0, cd:2, desc:"Pay 10 HP. Deal 26 damage.",
+    run:()=>{ G.hp-=10; hurt(26,"You cough up something with a texture and post it, along with ten of your own hit points, to an address that has no owner. It strikes the enemy full in the mouth on the way past."); }},
+  show_chart:{ name:"Show Them The Chart", cost:4, cd:2, desc:"Dazes the enemy for 3 rounds.",
+    run:()=>{ addFx(C.enemy,"dazed",3); say("You unroll the vellum. It is a logarithmic scale. There is a crumb on it that has been there since the Second Halving and is now structurally load-bearing.","good"); }},
+
+  huff:{ name:"Huff Copium", cost:5, cd:0, desc:"Heal 18 + COPE.",
+    run:()=>{ const h=18+G.stats.COPE; G.hp=Math.min(G.maxhp,G.hp+h);
+      say("You put your whole face into the sack and inhale until your eyes swim. It is fine. It has ALWAYS been fine. (+"+h+" HP)","good"); }},
+  mass_cope:{ name:"Mass Cope", cost:9, cd:3, desc:"Heal 12 and gain Diamond Hands.",
+    run:()=>{ G.hp=Math.min(G.maxhp,G.hp+12); addFx(G,"diamond",2);
+      say("You convene the fellowship at three in the morning and radicalise four grown men into holding through a divorce apiece. Sir Bartholomew weeps into your pauldron. You let him. (+12 HP)","good"); }},
+  deny:{ name:"Deny Reality", cost:7, cd:3, desc:"Ignore the next attack entirely.",
+    run:()=>{ addFx(G,"denial",2); say("You simply decide that the next thing to happen will not have happened. Reality, spineless, folds like a wet deckchair.","good"); }},
+  prediction:{ name:"Price Prophecy", cost:6, cd:1, desc:"d20 + SHILL. Wildly variable, like the asset.",
+    run:()=>{ const r=roll("SHILL"); hurt(r.crit?r.total*2:Math.floor(r.total*(Math.random()<.35?.4:1.4)),
+      r.line+" You say a number aloud with the unearned confidence of a man never once asked to prove anything."); }},
+
+  slash_fees:{ name:"Slash Tolls", cost:0, cd:0, desc:"d20 + TIMING.",
+    run:()=>{ const r=roll("TIMING"); hurt(r.crit?r.total*2:r.total, r.line+" "+pick(GORE)); }},
+  fork_it:{ name:"Fork It", cost:6, cd:2, desc:"Two strikes at 70% each.",
+    run:()=>{ for(let i=0;i<2;i++){ const r=roll("PUMP"); hurt(Math.floor(r.total*.7), r.line+" (fork "+(i+1)+" — something splits that oughtn't)"); } }},
+  uptime:{ name:"Validator Uptime", cost:0, cd:3, desc:"Regain 10 COPE and 8 HP.",
+    run:()=>{ G.cope=Math.min(G.maxcope,G.cope+10); G.hp=Math.min(G.maxhp,G.hp+8);
+      say("The cupboard hums. The smell hums back. You are at peace in a manner that would trouble a physician. (+8 HP, +10 COPE)","good"); }},
+  gas_bomb:{ name:"Toll Bomb", cost:8, cd:2, desc:"22 damage, applies FUD Poison.",
+    run:()=>{ hurt(22,"Nine months of beige food and warm ale exit you in one sustained, load-bearing blast. The enemy's eyes stream. Sconces gutter. Two men outside convert to another faith.");
+      addFx(C.enemy,"poison",3); }},
+
+  ratio:{ name:"Ratio", cost:0, cd:0, desc:"d20 + SHILL.",
+    run:()=>{ const r=roll("SHILL"); hurt(r.crit?r.total*2:r.total, r.line+" "+pick(GORE)); }},
+  dunk:{ name:"Marginal Dunk", cost:6, cd:2, desc:"18 damage. Doubled versus a Rekt foe.",
+    run:()=>{ const bonus=hasFx(C.enemy,"rekt")?2:1;
+      hurt(18*bonus,"You inscribe four words in the margin above their entire life's work. Their mother reads it. Their MOTHER, "+G.name+"."); }},
+  subtweet:{ name:"Anonymous Broadsheet", cost:5, cd:2, desc:"Applies Rekt and FUD Poison. Names no names.",
+    run:()=>{ addFx(C.enemy,"rekt",3); addFx(C.enemy,"poison",3);
+      say("You nail a notice to the church door reading “SOME PEOPLE”. You name nobody. Every man in the parish knows. None will sleep.","good"); }},
+  block:{ name:"Blackball", cost:4, cd:2, desc:"Evade the next attack. Petty. Effective.",
+    run:()=>{ addFx(G,"denial",2); say("You have them struck from the guild rolls. They can still read your notices from the far side of the square. They will. Every day. Until they die.","good"); }}
+};
+
+const GORE = [
+  "Something wet leaves them and lands somewhere else entirely.",
+  "There is a noise like a wellington boot withdrawn from a bog.",
+  "A tooth departs. It does not come back.",
+  "They fold in the middle like a deckchair full of soup.",
+  "A crunch. Every man present feels it in his own jaw.",
+  "A fine mist. Truly, a most exquisite fine mist.",
+  "You strike them so hard their entire posting history flashes before them.",
+  "They make a sound audible only to dogs and creditors.",
+  "Something detaches. Nobody looks directly at it.",
+  "They piss themselves, slightly. You have the grace to pretend otherwise.",
+  "Their spectacles fill with something. From the inside.",
+  "A rib goes. You hear it leave the building."
+];
+
+/* ============================================================
+   TALENTS
+   ============================================================ */
+const TALENTS = [
+  {id:"conviction", name:"Unearned Conviction", desc:"+1 to every attack roll. You simply believe harder than the facts do."},
+  {id:"nocoiner", name:"Nocoiner Contempt", desc:"+12 max HP, fuelled entirely by hating men with balanced lives."},
+  {id:"lungs", name:"Industrial Lungs", desc:"COPE regenerates 3 per round. Your lung capacity is now medically abnormal."},
+  {id:"chartcrime", name:"Chart Crimes", desc:"Crit on 19 and 20. The axis was always logarithmic, you filthy little liar."},
+  {id:"engagement", name:"Engagement Farming", desc:"+8 cringe each round. Being insufferable IS the build."},
+  {id:"ladder", name:"Laddered Position", desc:"Begin every fight with Diamond Hands. Also you cannot pleasure yourself. Trade-offs."},
+  {id:"gigabrain", name:"Gigabrain Alignment", desc:"+3 GALAXY BRAIN. Double trivia rewards. Zero friends outside the guild."},
+  {id:"lambo", name:"Phantom Destrier", desc:"+3 TIMING. You have never ridden it. You describe it during sex."},
+  {id:"sunkcost", name:"Sunk-Cost Armour", desc:"Below 30% HP you deal 50% more damage out of pure venomous spite."},
+  {id:"airdrop", name:"Airdrop Instinct", desc:"+40 "+LORE.COIN+" per victory. You would eat off a flagstone for free money."},
+  {id:"seminar", name:"Seminar Voice", desc:"+3 SHILL. Merchants give 20% off purely so that you will leave."},
+  {id:"hydration", name:"Aggressive Hydration", desc:"Heal 5 HP each round. You piss like a destrier and you piss with PURPOSE."}
+];
+
+/* ============================================================
+   ITEMS
+   ============================================================ */
+const ITEMS = {
+  copium:{ name:"Phial of Copium", cost:40, desc:"Restores 30 HP and one load-bearing delusion.",
+    use:()=>{ G.hp=Math.min(G.maxhp,G.hp+30); say("You huff until your sinuses whistle a hymn. Colour returns. So does the confidence. (+30 HP)","good"); }},
+  redbull:{ name:"Warm Ale (Opened At Candlemas)", cost:35, desc:"Restores 20 COPE. Tastes of tankard and consequence.",
+    use:()=>{ G.cope=Math.min(G.maxcope,G.cope+20); say("Warm. Flat. Something solid goes down with it. You elect not to investigate. (+20 COPE)","good"); }},
+  shades:{ name:"Smoked Spectacles (Indoor Grade)", cost:120, desc:"+2 SHILL, permanently. You look insane. You look wealthy. Same thing.",
+    once:true, use:()=>{ G.stats.SHILL+=2; say("You don them. It is Compline. You are indoors. A woman crosses the street. (+2 SHILL)","good"); }},
+  tshirt:{ name:"Signed Tabard (Unwashed)", cost:90, desc:"+15 max HP. Signed by someone. Illegible. Faintly damp.",
+    once:true, use:()=>{ G.maxhp+=15; G.hp+=15; say("The mark might read “Richard”. It might read “Receipt”. It is unquestionably still wet. (+15 max HP)","good"); }},
+  airfresh:{ name:"Pomander of the Gilded Carriage", cost:60, desc:"+40 cringe. Smells of leased dreams and wet hound.",
+    use:()=>{ cringe(40); say("Your actual conveyance is a borrowed donkey with a fossilised pie beneath the saddle. It now smells of AMBITION.","good"); }},
+  ladder:{ name:"The Fifteen-Year Bond", cost:150, desc:"+20 max COPE. Untouchable for fifteen years. That is the entire kink.",
+    once:true, use:()=>{ G.maxcope+=20; G.cope+=20; say("Sealed until the Year of the Fifth Halving. You will be fifty. You feel calmer, poorer, and unaccountably aroused. (+20 max COPE)","good"); }},
+  bottle:{ name:"The Jar", cost:25, desc:"Restores 15 HP and 15 COPE. You know what it is. Don't make this strange.",
+    use:()=>{ G.hp=Math.min(G.maxhp,G.hp+15); G.cope=Math.min(G.maxcope,G.cope+15); cringe(15);
+      say("You did not leave the ledger during the pump. You did not leave it for eleven hours. The jar understands. The jar was there. (+15 HP, +15 COPE)","good"); }},
+  keyboard:{ name:"Crusted Abacus", cost:110, desc:"+3 PUMP. Every bead is faintly tacky. You know why. Everyone knows why.",
+    once:true, use:()=>{ G.stats.PUMP+=3; say("You swing it. Nine months of crumbs, skin and personal history burst from it like a piñata of shame. (+3 PUMP)","good"); }},
+  oil:{ name:"Guild Armour Oil", cost:70, desc:"+2 PUMP, +2 COPE. The fellowship applies it to one another. At length. In silence.",
+    once:true, use:()=>{ G.stats.PUMP+=2; G.stats.COPE+=2; cringe(20);
+      say("Sir Bartholomew does your gorget. You do his. Nobody speaks. Somewhere a lute plays one note and stops. (+2 PUMP, +2 COPE)","good"); }}
+};
+
+/* ============================================================
+   BESTIARY
+   ============================================================ */
+const ENEMIES = {
+  goblin_pape:{ name:"Paper-Handed Goblin", spr:"paperhands", hp:34, dmg:[4,9], xp:22, gold:35,
+    taunts:["“I shall buy it back lower,” it lies, to itself, forever, with its whole wet chest.",
+            "It sells at a four-percent loss, calls it prudence, and immediately shits itself.",
+            "It produces its ledger. One page. Cropped. You can see a thumb. The thumb is filthy.",
+            "It has sold this coin eleven times and bought it back eleven times. It is a wheel of pain with a face."]},
+  fud_bat:{ name:"Fuddite Bat", spr:"bat", hp:26, dmg:[5,10], xp:18, gold:25,
+    taunts:["It shrieks a pamphlet headline from the Year of the Great Doubt. Something drips off it.",
+            "“BUT WHAT IS THE UTILITYYYY,” it screams, upside down, pissing directly up its own back.",
+            "It cites a monastery scroll. The scroll is also a bat. It is bats the whole way down.",
+            "It has never held an asset above nine minutes nor a thought above four."]},
+  doomer:{ name:"The Discount Hermit", spr:"paperhands", hp:44, dmg:[6,12], xp:30, gold:45,
+    taunts:["“It shall dip again,” he says, having said precisely this at every price for six unbroken years.",
+            "He keeps a standing order ninety percent down. It is his longest relationship and will outlive him.",
+            "He asks whether you bought the top. He knows you bought the top. He was there. He watched. He waved.",
+            "He has not left the cave since the halving. It smells in there like a warm coin."]},
+  replyguy:{ name:"Squire Ackchyually", spr:"rogue", hp:38, dmg:[7,11], xp:26, gold:30,
+    taunts:["“Ackchyually,” he begins, and every man in the hall ages a full year.",
+            "He annotates a two-year-old proclamation to correct a spelling. He is nude. He is always nude.",
+            "Forty-one thousand annotations. Three admirers. Two are him. The third is his mother and she has moved.",
+            "He writes with both thumbs at a speed that has permanently ruined the thumbs."]},
+
+  hydra:{ name:"The Paper-Handed Hydra", spr:"hydra", hp:120, dmg:[8,14], xp:120, gold:220, boss:true,
+    taunts:["Head one sold at break-even. Head two sold at a loss. Head three is selling RIGHT NOW, before you, unashamed.",
+            "Every head keeps a different exit strategy and none of them are on speaking terms.",
+            "You take a head. It regrows instantly and immediately asks whether it is too late to buy.",
+            "Two heads begin devouring one another over a three-percent move. Neither notices you at all."]},
+  kraken:{ name:"The Tollkeeper of "+LORE.OLDROAD, spr:"kraken", hp:170, dmg:[10,17], xp:180, gold:300, boss:true,
+    taunts:["It quotes you three hundred gilders to move six. It does not blink. It has no lids and no shame.",
+            "A tentacle marked PRIORITY wraps your ankle, then — with real intent — your thigh.",
+            "It fails your transaction and keeps the toll regardless. This is entirely lawful. That is the horror.",
+            "It voids something black and expensive into the water and you must swim through it to reach the far bank."]},
+  chad:{ name:"Sir Chadwick Gasslighter, the Mirror Knight", spr:"chad", hp:200, dmg:[11,18], xp:240, gold:400, boss:true,
+    taunts:["“I never said buy,” he says, beneath a nine-yard banner reading BUY THIS NOW.",
+            "He burns a proclamation mid-duel. Forty thousand copies already exist. His jaw sets like a trap.",
+            "He summons a Reply-Knight. The Reply-Knight is somehow also him. They clasp forearms. It is grim.",
+            "His physique is real. His entry price is not. His patron is a dice-house that admits children."]},
+  karen:{ name:"Chancellor Karen Formfiller, Keeper of the Rolls", spr:"karen", hp:240, dmg:[12,19], xp:300, gold:520, boss:true,
+    taunts:["She serves you a form. The form asks what a ledger is. In triplicate. In a hand designed to wound.",
+            "She has had your entire posting history bound in calfskin. It has TABS. It has an INDEX.",
+            "“I do not understand it,” she says warmly, “so it is fraud.” She is not entirely wrong.",
+            "She papercuts you somewhere a papercut has no business whatsoever being."]},
+  heartburn:{ name:LORE.FOUNDER+", "+LORE.FOUNDER_TITLE, spr:"heartburn", hp:300, dmg:[13,21], xp:600, gold:1200, boss:true,
+    taunts:["He begins answering a question. It is not your question. It is hour two. You have wet yourself and he has not noticed.",
+            "“The biggest, and the best, and the biggest,” he explains, to the biggest, at length, again, gesturing with a goblet.",
+            "Smoked spectacles. At night. Indoors. In a CAVE. No man has ever asked him about it and survived socially.",
+            "His wings — vast, gilded, entirely decorative — beat once. Four sconces go out. He does not stop talking.",
+            "He drives a gilded carriage straight through the throne room, does not acknowledge it, and continues the sentence.",
+            "He begins a sentence in the Year of the First Sacrifice and completes it now. You have aged. He has not. That is the part that frightens you."]},
+  origin:{ name:"THE ORIGIN VAULT", spr:"origin", hp:380, dmg:[16,26], xp:1000, gold:3000, boss:true,
+    taunts:["It has held since the first block was hewn. It has never spoken. It is speaking now and it sounds like your father.",
+            "The vault swings open. Within lies every bag any man has ever wept over, still warm.",
+            "It does not want your money. It HAS your money. It wants the years. It wants your TIME.",
+            "It shows you the house you might have bought. You begin, quietly, to bleed from the nose."]}
+};
+
+/* ============================================================
+   TRIVIA
+   ============================================================ */
+const QUIZ = [
+  {q:"What, precisely, is the Sacrifice Phase?",
+   a:["A period in which one gives away money and receives a feeling","A taxable event with a fan club","Christmas, but for one man only","All of these at once, forever, screaming"], c:3,
+   r:"Correct. It is a superposition of all four and it outlasted most marriages in the parish."},
+  {q:"How long is a proper bond ladder?",
+   a:["Fifteen years","Until you forget the seal-phrase","One king's reign and a divorce","Longer than the guild's own roadmap"], c:0,
+   r:"Fifteen years. You shall be a different man. Your keys shall not."},
+  {q:"Why the smoked spectacles indoors?",
+   a:["The sconces","The doubters","The future is bright and it emanates from within","No man has asked and remained in the guild"], c:2,
+   r:"The future is bright. The room is not. The spectacles are non-negotiable."},
+  {q:"The audience has run five hours. What question is being answered?",
+   a:["The first one","One nobody asked","One from three winters ago","The abstract concept of a question"], c:1,
+   r:"One nobody asked, answered exhaustively, with diagrams, and a second, worse diagram."},
+  {q:"The correct reply to “thou art down eighty percent”?",
+   a:["“I am up in "+LORE.COIN+"”","“I never sold, therefore I never lost”","“That is the discount phase”","Unroll the logarithmic vellum"], c:1,
+   r:"You never sold, so it never happened. Airtight. No court has yet disagreed loudly enough."},
+  {q:"What does the tabard say?",
+   a:["The name of the coin","The name of the man","The price target","It is illegible and cost eighty gilders"], c:3,
+   r:"Illegible. Eighty gilders. Sold out in the time it takes to sneeze."},
+  {q:"How many men were harmed in the building of this ladder?",
+   a:["None, financially","None, legally","None, according to the man who built it","Define “harmed”, then define “men”"], c:3,
+   r:"Definitions are the whole ballgame. Welcome to the guild."},
+  {q:"The ledger halted. What in fact occurred?",
+   a:["Scheduled decentralised rest","The validators were touching grass","It did not, thou art using the wrong scribe","A stress test, done deliberately"], c:2,
+   r:"The wrong scribe. It is always the wrong scribe. It has never once been the ledger."},
+  {q:"The finest marketing strategy?",
+   a:["Being the biggest","Being the best","Declaring oneself biggest and best, repeatedly, for nine hours","A barge"], c:2,
+   r:"Repetition is the message. The message is repetition. Also, yes, obviously, a barge."},
+  {q:"A man calls it a pyramid. Thy move?",
+   a:["Explain the tokenomics for forty minutes","Ask him what a bank is","Send a lawyerly note from a personal seal","Repost him for the engagement"], c:1,
+   r:"“What is a bank, though?” Devastating. Unanswerable. The hall empties."},
+  {q:"What is the utility?",
+   a:["Number","Number go up","The utility is the number going up","There is none, and THAT is the utility"], c:3,
+   r:"Purity. No utility to disappoint you means no utility that can fail you."},
+  {q:"Thy friend asks whether it is too late to buy.",
+   a:["“It is early”","“It is always early”","“We are so early”","“Early.”"], c:2,
+   r:"“We are so early.” It is year seven. We remain, somehow, so early."},
+  {q:"A brother of the guild weeps into thy pauldron at a four-percent dip. Thou—",
+   a:["Hold him. Obviously hold him.","Oil his gorget in companionable silence","Say “we are so early” into his hair","All three, in that exact order, wordlessly"], c:3,
+   r:"All three. In that order. Wordlessly. This is the Rite and it is not discussed outside the hall."},
+  {q:"What is His Lordship's doublet?",
+   a:[LORE.BRAND,"Definitely "+LORE.BRAND,"He will tell you it is "+LORE.BRAND+", unprompted, twice","All of the above within ninety seconds of meeting you"], c:3,
+   r:"He will say the word "+LORE.BRAND+" more often than he says your name. He does not know your name."}
+];
+
+const CRIES = [
+  "few there be that understand this",
+  "if thou knowest, thou knowest",
+  "still, verily, so early",
+  "this is not financial counsel, it is a way of life",
+  "imagine not being in the Sacrifice Phase",
+  "wife departed. ladder intact. praise be.",
+  "the chart is well, thou art merely viewing it in gilders",
+  "good morrow to all save the doubters",
+  "we are not a coin, we are a movement that happens to have a coin",
+  "a thousandfold from here and I shall still be poor, on account of my entry",
+  "sold the donkey. bought more. the donkey was a liability. so are the bags, but louder.",
+  "the Chancery is merely doubt with a building"
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let G=null;
+function newGame(){
+  return { name:"", cls:null, lvl:1, xp:0, xpNext:60,
+    hp:70, maxhp:70, cope:30, maxcope:30, cringeMeter:0,
+    stats:{PUMP:10,COPE:10,TIMING:10,GALAXY:10,SHILL:10,PAPER:10},
+    gold:80, items:{copium:2}, talents:[], fx:[], owned:{},
+    quests:[], done:[], act:1, year:1, kills:0, achievements:[], flags:{} };
+}
+const C={ active:false, enemy:null, round:0, onWin:null, onLose:null, cds:{}, busy:false };
+
+/* ============================================================
+   CANVAS
+   ============================================================ */
+const cv=document.getElementById("cv"), cx=cv.getContext("2d");
+let shake=0, flashE=0, flashP=0, t=0;
+/* Whoever is loitering in the current location, drawn when not in combat. */
+let sceneSpr=null;
+function setScene(spr){ sceneSpr=spr; }
+
+function drawSprite(key,px,py,scale,flip){
+  const s=SPR[key]; if(!s) return;
+  cx.save();
+  if(flip){ cx.translate(px+16*scale,py); cx.scale(-1,1); } else cx.translate(px,py);
+  for(let y=0;y<s.rows.length;y++){
+    const row=s.rows[y];
+    for(let x=0;x<row.length;x++){
+      const ch=row[x]; if(ch==="."||ch===" ") continue;
+      const col=s.pal[ch]; if(!col) continue;
+      cx.fillStyle=col; cx.fillRect(x*scale,y*scale,scale,scale);
+    }
+  }
+  cx.restore();
+}
+
+/* Cathedral throne hall: stone, rose window, torchlight. */
+function backdrop(){
+  const W=cv.width,H=cv.height;
+  const wall=cx.createLinearGradient(0,0,0,H);
+  wall.addColorStop(0,"#241608"); wall.addColorStop(.55,"#3A2610"); wall.addColorStop(1,"#1B1107");
+  cx.fillStyle=wall; cx.fillRect(0,0,W,H);
+
+  // masonry
+  cx.strokeStyle="rgba(0,0,0,.30)"; cx.lineWidth=1;
+  for(let y=14;y<H*.66;y+=16){
+    cx.beginPath(); cx.moveTo(0,y); cx.lineTo(W,y); cx.stroke();
+    const off=(y/16)%2?12:0;
+    for(let x=off;x<W;x+=34){ cx.beginPath(); cx.moveTo(x,y); cx.lineTo(x,y+16); cx.stroke(); }
+  }
+
+  // gothic arch
+  const ax=W/2, ay=H*.50, aw=104;
+  cx.fillStyle="#120B05";
+  cx.beginPath();
+  cx.moveTo(ax-aw,ay+70); cx.lineTo(ax-aw,ay-26);
+  cx.quadraticCurveTo(ax,ay-120,ax+aw,ay-26);
+  cx.lineTo(ax+aw,ay+70); cx.closePath(); cx.fill();
+
+  // rose window
+  const flick=.82+Math.sin(t/9)*.06+Math.sin(t/3.3)*.03;
+  const rg=cx.createRadialGradient(ax,ay-34,3,ax,ay-34,40);
+  rg.addColorStop(0,"rgba(255,233,168,"+(0.95*flick)+")");
+  rg.addColorStop(.45,"rgba(232,179,60,"+(0.65*flick)+")");
+  rg.addColorStop(1,"rgba(200,52,42,0)");
+  cx.fillStyle=rg; cx.beginPath(); cx.arc(ax,ay-34,40,0,Math.PI*2); cx.fill();
+  cx.strokeStyle="rgba(200,52,42,.55)";
+  for(let i=0;i<8;i++){ const a=i*Math.PI/4;
+    cx.beginPath(); cx.moveTo(ax,ay-34); cx.lineTo(ax+Math.cos(a)*30,ay-34+Math.sin(a)*30); cx.stroke(); }
+
+  // torches
+  [46,W-46].forEach((x,i)=>{
+    const f=.8+Math.sin(t/6+i*2)*.2;
+    const tg=cx.createRadialGradient(x,86,2,x,86,30*f);
+    tg.addColorStop(0,"rgba(255,233,168,.95)"); tg.addColorStop(.5,"rgba(232,179,60,.35)");
+    tg.addColorStop(1,"rgba(200,52,42,0)");
+    cx.fillStyle=tg; cx.beginPath(); cx.arc(x,86,30*f,0,Math.PI*2); cx.fill();
+    cx.fillStyle="#2A1B0C"; cx.fillRect(x-3,90,6,26);
+  });
+
+  // flagstones
+  cx.fillStyle="#150E06"; cx.fillRect(0,H*.66,W,H*.34);
+  cx.strokeStyle="rgba(232,179,60,.10)";
+  for(let i=0;i<=12;i++){ const x=(i/12)*W;
+    cx.beginPath(); cx.moveTo(W/2+(x-W/2)*.22,H*.66); cx.lineTo(x*2-W/2,H); cx.stroke(); }
+  for(let i=0;i<8;i++){ const yy=H*.66+Math.pow(i/7,2)*H*.34;
+    cx.beginPath(); cx.moveTo(0,yy); cx.lineTo(W,yy); cx.stroke(); }
+}
+
+function paint(){
+  t++;
+  cx.setTransform(1,0,0,1,0,0);
+  cx.clearRect(0,0,cv.width,cv.height);
+  if(shake>0){ cx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake); shake*=.86; if(shake<.3) shake=0; }
+  backdrop();
+  const bob=Math.sin(t/22)*3;
+
+  if(C.active && C.enemy){
+    const sc=ENEMIES[C.enemy.key].boss?9:7;
+    if(flashE>0){ cx.globalAlpha=(flashE%4<2)?.35:1; flashE--; }
+    drawSprite(ENEMIES[C.enemy.key].spr, cv.width-16*sc-34, cv.height*.30+bob, sc, true);
+    cx.globalAlpha=1;
+    const bw=150, bx=cv.width-bw-24, by=22;
+    cx.fillStyle="#0A0503"; cx.fillRect(bx-2,by-2,bw+4,12);
+    cx.fillStyle="#C8342A"; cx.fillRect(bx,by,bw*Math.max(0,C.enemy.hp/C.enemy.maxhp),8);
+    cx.fillStyle="#EDE0C8"; cx.font="9px ui-monospace,monospace"; cx.textAlign="right";
+    cx.fillText(C.enemy.hp+" / "+C.enemy.maxhp, bx+bw, by-5);
+  } else if(sceneSpr && G && G.cls){
+    const sc=sceneSpr==="heartburn"?9:7;
+    drawSprite(sceneSpr, cv.width-16*sc-34, cv.height*.30-bob, sc, true);
+  }
+  if(G && G.cls){
+    if(flashP>0){ cx.globalAlpha=(flashP%4<2)?.35:1; flashP--; }
+    drawSprite(CLASSES[G.cls].spr, 40, cv.height*.42-bob, C.active?7:8);
+    cx.globalAlpha=1;
+  } else if(!C.active){
+    drawSprite("heartburn", cv.width/2-8*9, cv.height*.30+bob, 9);
+  }
+  requestAnimationFrame(paint);
+}
+requestAnimationFrame(paint);
+
+/* ============================================================
+   DICE
+   ============================================================ */
+function d(n){ return 1+Math.floor(Math.random()*n); }
+function d20(){ return d(20); }
+function critAt(){ return has("chartcrime")?19:20; }
+function roll(stat,dc){
+  const nat=d20();
+  const mod=Math.floor((G.stats[stat]-10)/2)+(has("conviction")?1:0);
+  let total=Math.max(1,nat+mod+G.lvl);
+  const crit=nat>=critAt(), fumble=nat===1;
+  if(fumble) total=Math.floor(total*.3);
+  let line="⬡ d20 → "+nat+(mod>=0?" +":" ")+mod+" ("+stat+")";
+  if(crit) line+=" — NUMBER GO UP.";
+  else if(fumble) line+=" — RUGGED.";
+  return {nat,total,crit,fumble,line,pass:dc?total>=dc:null};
+}
+
+/* ============================================================
+   UI
+   ============================================================ */
+const logEl=document.getElementById("log"), choicesEl=document.getElementById("choices");
+function say(html,cls){ const p=document.createElement("p"); p.className=cls||"say"; p.innerHTML=html;
+  logEl.appendChild(p); logEl.scrollTop=logEl.scrollHeight; }
+function chapter(txt){ say(txt,"chap"); }
+function clearLog(){ logEl.innerHTML=""; }
+
+function opts(list){
+  choicesEl.innerHTML="";
+  list.forEach(o=>{
+    if(o.if && !o.if()) return;
+    const b=document.createElement("button");
+    b.innerHTML=o.t+(o.sub?'<span class="cost">'+o.sub+'</span>':"");
+    if(o.cls) b.className=o.cls;
+    if(o.dis && o.dis()) b.disabled=true;
+    b.onclick=()=>{ if(o.cringe) cringe(o.cringe); o.go(); };
+    choicesEl.appendChild(b);
+  });
+}
+
+function meter(label,val,max,cls,extra){
+  const pct=Math.max(0,Math.min(100,(val/max)*100));
+  return '<div class="meter"><div class="lbl"><span>'+label+'</span><b>'+(extra||val+" / "+max)+'</b></div>'+
+    '<div class="bar '+cls+(cls==="cringe"&&val>=max?" full":"")+'"><i style="width:'+pct+'%"></i></div></div>';
+}
+function renderHUD(){
+  const el=document.getElementById("hud");
+  if(!G||!G.cls){ el.innerHTML='<div class="meter"><div class="lbl"><span>Status</span><b>No character</b></div></div>'; return; }
+  el.innerHTML=meter("Vigour",G.hp,G.maxhp,"hp")+meter("Cope",G.cope,G.maxcope,"cope")+
+    meter("Experience",G.xp,G.xpNext,"xp")+meter("Cringe",G.cringeMeter,100,"cringe",G.cringeMeter+"%")+
+    '<div class="meter"><div class="lbl"><span>Purse</span><b>'+G.gold+'</b></div>'+
+    '<div class="lbl"><span>Level</span><b>'+G.lvl+'</b></div></div>';
+}
+function renderSheet(){
+  const el=document.getElementById("sheet");
+  if(!G||!G.cls){ el.innerHTML='<p class="empty">Roll a character to begin.</p>'; return; }
+  let h='<div class="kv"><span>'+G.name+'</span><b>'+CLASSES[G.cls].name+'</b></div>';
+  for(const k in G.stats) h+='<div class="kv"><span>'+k+'</span><b>'+G.stats[k]+'</b></div>';
+  h+='<div class="kv"><span>Bosses felled</span><b>'+G.kills+'</b></div>';
+  el.innerHTML=h;
+}
+function fxName(k){ return {diamond:"Diamond Hands",denial:"Denial",poison:"FUD Poison",rekt:"Rekt",dazed:"Dazed",staked:"Bonded"}[k]||k; }
+function renderFx(){
+  const el=document.getElementById("effects");
+  if(!G||(!G.talents.length && !G.fx.length)){ el.innerHTML='<p class="empty">Nothing yet. Thou art unremarkable.</p>'; return; }
+  let h='<div class="chips">';
+  G.talents.forEach(id=>{ const t=TALENTS.find(x=>x.id===id); if(t) h+='<span class="chip gold" title="'+t.desc+'">'+t.name+'</span>'; });
+  G.fx.forEach(f=>h+='<span class="chip '+(["poison","rekt","dazed"].includes(f.k)?"off":"on")+'">'+fxName(f.k)+' '+f.n+'</span>');
+  el.innerHTML=h+'</div>';
+}
+function renderQuests(){
+  const el=document.getElementById("quests");
+  if(!G||(!G.quests.length && !G.done.length)){ el.innerHTML='<p class="empty">No active quests. Suspicious.</p>'; return; }
+  el.innerHTML=G.quests.map(q=>'<div class="kv"><span>▸</span><b>'+q+'</b></div>').join("")+
+    (G.done.length?'<div class="chips" style="margin-top:.5rem">'+G.done.map(q=>'<span class="chip on">'+q+'</span>').join("")+'</div>':"");
+}
+function renderBags(){
+  const el=document.getElementById("bags");
+  if(!G){ el.innerHTML='<p class="empty">—</p>'; return; }
+  const keys=Object.keys(G.items).filter(k=>G.items[k]>0);
+  let h='<div class="kv"><span>'+LORE.COIN+'</span><b>'+G.gold+'</b></div>';
+  h+=keys.length?keys.map(k=>'<div class="kv"><span>'+ITEMS[k].name+'</span><b>×'+G.items[k]+'</b></div>').join("")
+                :'<p class="empty">Pack empty. Spirit full.</p>';
+  if(G.achievements.length) h+='<div class="chips" style="margin-top:.5rem">'+
+    G.achievements.map(a=>'<span class="chip gold">'+a+'</span>').join("")+'</div>';
+  el.innerHTML=h;
+}
+function renderAll(){ renderHUD(); renderSheet(); renderFx(); renderQuests(); renderBags(); save(); }
+function place(name,when){ document.getElementById("place").textContent=name;
+  if(when) document.getElementById("clock").textContent=when; }
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function has(t){ return G.talents.includes(t); }
+function hasFx(who,k){ return who.fx && who.fx.some(f=>f.k===k); }
+function addFx(who,k,n){ who.fx=who.fx||[]; const e=who.fx.find(f=>f.k===k); if(e) e.n=Math.max(e.n,n); else who.fx.push({k,n}); }
+function tickFx(who){ if(!who.fx) return; who.fx.forEach(f=>f.n--); who.fx=who.fx.filter(f=>f.n>0); }
+function cringe(n){ G.cringeMeter=Math.min(100,G.cringeMeter+n); if(G.cringeMeter>=100) unlock("Peak Cringe"); }
+function unlock(a){ if(!G.achievements.includes(a)){ G.achievements.push(a); say("★ ACHIEVEMENT — "+a,"crit"); } }
+function quest(q){ if(!G.quests.includes(q)) G.quests.push(q); }
+function finishQuest(q){ G.quests=G.quests.filter(x=>x!==q); if(!G.done.includes(q)) G.done.push(q); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function gainXP(n){ G.xp+=n; say("+"+n+" experience.","sys"); while(G.xp>=G.xpNext) levelUp(); }
+function levelUp(){
+  G.xp-=G.xpNext; G.lvl++; G.xpNext=Math.floor(G.xpNext*1.55);
+  G.maxhp+=14; G.hp=G.maxhp; G.maxcope+=8; G.cope=G.maxcope;
+  say("⬆ LEVEL "+G.lvl+". Thou art objectively better at this and no more correct.","crit");
+}
+function offerTalent(next){
+  const pool=TALENTS.filter(t=>!has(t.id));
+  if(!pool.length){ next(); return; }
+  const copy=pool.slice(), three=[];
+  while(three.length<3 && copy.length) three.push(copy.splice(Math.floor(Math.random()*copy.length),1)[0]);
+  chapter("Choose a talent");
+  say("Growth is available. It shall not make thee a better man.","sys");
+  opts(three.map(t=>({ t:"<b>"+t.name+"</b>", sub:t.desc, go:()=>{
+    G.talents.push(t.id);
+    if(t.id==="gigabrain") G.stats.GALAXY+=3;
+    if(t.id==="lambo") G.stats.TIMING+=3;
+    if(t.id==="seminar") G.stats.SHILL+=3;
+    if(t.id==="nocoiner"){ G.maxhp+=12; G.hp+=12; }
+    say("Thou takest <b>"+t.name+"</b>. "+t.desc,"good");
+    renderAll(); next();
+  }})));
+}
+
+/* ============================================================
+   SAVE
+   ============================================================ */
+const SAVEKEY="hexquest_save_v2";
+function save(){ try{ if(G&&G.cls) localStorage.setItem(SAVEKEY,JSON.stringify(G)); }catch(e){} }
+function loadSave(){ try{ const s=localStorage.getItem(SAVEKEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function wipe(){ try{ localStorage.removeItem(SAVEKEY); }catch(e){} }
+
+/* ============================================================
+   COMBAT
+   ============================================================ */
+/* One action per turn: clears the choices and latches until the round resolves,
+   so a fast clicker cannot queue two actions and have a stale menu overwrite
+   the victory / talent screen. */
+function turn(fn){
+  return ()=>{ if(!C.active || C.busy) return; C.busy=true; choicesEl.innerHTML=""; fn(); };
+}
+
+function startCombat(key,onWin,onLose){
+  const e=ENEMIES[key];
+  C.active=true; C.round=0; C.cds={}; C.busy=false; C.onWin=onWin; C.onLose=onLose||defeat;
+  C.enemy={ key, hp:e.hp+G.lvl*6, maxhp:e.hp+G.lvl*6, fx:[] };
+  G.fx=[];
+  if(has("ladder")) addFx(G,"diamond",3);
+  chapter(e.boss?"BOSS — "+e.name:"Encounter — "+e.name);
+  say(pick(e.taunts),"npc");
+  const init=roll("TIMING");
+  say(init.line+" Initiative.","sys");
+  renderAll();
+  if(init.nat<8){ say("It moves first. Of course it bloody does.","bad"); enemyTurn(); }
+  else combatMenu();
+}
+
+function combatMenu(){
+  if(!C.active) return;
+  C.busy=false;
+  C.round++;
+  if(has("hydration")) G.hp=Math.min(G.maxhp,G.hp+5);
+  if(has("engagement")) cringe(8);
+  G.cope=Math.min(G.maxcope,G.cope+(has("lungs")?3:2));
+  for(const k in C.cds) if(C.cds[k]>0) C.cds[k]--;
+
+  if(hasFx(C.enemy,"poison")){
+    C.enemy.hp-=7; say("FUD Poison eats seven from "+ENEMIES[C.enemy.key].name+".","good");
+    if(checkWin()) return;
+  }
+  renderAll();
+
+  const list=CLASSES[G.cls].abilities.map(k=>{
+    const a=ABIL[k], cd=C.cds[k]||0;
+    return { t:"<b>"+a.name+"</b>",
+      sub:a.desc+(a.cost?" — "+a.cost+" cope":"")+(cd?" — "+cd+" round cooldown":""),
+      dis:()=>cd>0||G.cope<a.cost,
+      go:turn(()=>{ G.cope-=a.cost; C.cds[k]=a.cd; a.run(); afterPlayer(); }) };
+  });
+  list.push({ t:"<b>Use an item</b>", sub:"Consume something bought while emotional",
+    dis:()=>!Object.keys(G.items).some(k=>G.items[k]>0),
+    go:turn(()=>useItemMenu(()=>afterPlayer(), ()=>combatMenu())) });
+  if(G.cringeMeter>=100) list.push({ t:"★ "+CLASSES[G.cls].ult.name, sub:CLASSES[G.cls].ult.desc, cls:"ult",
+    go:turn(()=>{ G.cringeMeter=0; say("— CRINGE OVERLOAD —","crit"); CLASSES[G.cls].ult.run(); afterPlayer(); }) });
+  list.push({ t:"Flee", sub:"d20 vs TIMING. It will go badly. Historically it always has.",
+    go:turn(()=>{ const r=roll("TIMING"); say(r.line,"sys");
+      if(r.nat>=17 && !ENEMIES[C.enemy.key].boss){
+        say("You escape. You will tell the tavern you won.","good");
+        C.active=false; C.busy=false; cringe(10); C.onWin&&C.onWin();
+      } else {
+        say(ENEMIES[C.enemy.key].boss?"There is no fleeing a man mid-sentence.":"You trip over your own ambition.","bad");
+        enemyTurn();
+      } }) });
+  opts(list);
+}
+
+function hurt(n,line){
+  if(has("sunkcost") && G.hp<G.maxhp*.3) n=Math.floor(n*1.5);
+  if(hasFx(C.enemy,"dazed")) n=Math.floor(n*1.15);
+  C.enemy.hp-=n; flashE=8; shake=6;
+  say(line+" <b class='good'>−"+n+"</b>","say");
+}
+function afterPlayer(){
+  tickFx(G); renderAll();
+  if(checkWin()) return;
+  setTimeout(()=>{ if(C.active) enemyTurn(); },320);
+}
+
+function checkWin(){
+  if(C.enemy.hp>0) return false;
+  C.active=false; C.busy=false;
+  const e=ENEMIES[C.enemy.key];
+  say(e.name+" is finished.","good");
+  const g=e.gold+(has("airdrop")?40:0);
+  G.gold+=g; say("+"+g+" "+LORE.COIN+".","sys");
+  gainXP(e.xp);
+  if(e.boss){ G.kills++; unlock("Felled "+e.name.split(",")[0]); }
+  renderAll();
+  offerTalent(()=>C.onWin&&C.onWin());
+  return true;
+}
+
+function enemyTurn(){
+  if(!C.active) return;
+  const e=ENEMIES[C.enemy.key];
+  tickFx(C.enemy);
+  if(Math.random()<.4) say(pick(e.taunts),"npc");
+
+  let dmg=e.dmg[0]+Math.floor(Math.random()*(e.dmg[1]-e.dmg[0]+1))+Math.floor(G.lvl*1.4);
+  if(hasFx(C.enemy,"rekt")) dmg=Math.floor(dmg*.6);
+  if(hasFx(C.enemy,"dazed")) dmg=Math.floor(dmg*.75);
+
+  if(hasFx(G,"denial")){
+    say("It strikes. You have decided that it did not. It is obliged to concur.","good");
+    G.fx=G.fx.filter(f=>f.k!=="denial");
+  } else {
+    if(hasFx(G,"diamond")) dmg=Math.floor(dmg/2);
+    const dodge=roll("TIMING");
+    if(dodge.nat>=18) say(dodge.line+" You slip it entirely.","good");
+    else {
+      dmg+=Math.floor((G.stats.PAPER-10)/3);
+      G.hp-=dmg; flashP=8; shake=8;
+      say(e.name+" connects. <b class='bad'>−"+dmg+" vigour</b>","say");
+    }
+  }
+  renderAll();
+  if(G.hp<=0){ G.hp=0; renderAll(); C.active=false; C.busy=false; setTimeout(()=>C.onLose(),400); return; }
+  setTimeout(()=>{ if(C.active) combatMenu(); },320);
+}
+
+function useItemMenu(onUse,onCancel){
+  const keys=Object.keys(G.items).filter(k=>G.items[k]>0);
+  opts(keys.map(k=>({ t:"<b>"+ITEMS[k].name+"</b> ×"+G.items[k], sub:ITEMS[k].desc,
+    go:()=>{ G.items[k]--; ITEMS[k].use(); renderAll(); onUse&&onUse(); } }))
+    .concat([{ t:"Back", sub:"Costs thee nothing but dignity", go:()=>onCancel&&onCancel() }]));
+}
+
+function defeat(){
+  clearLog(); C.active=false; place("A DITCH","YEAR "+G.year);
+  chapter("REKT");
+  say("You go down. Not dramatically. You simply stop, in a puddle, in front of men who will describe this later, badly, for years.","say");
+  say("Somewhere a vault you do not control receives a single grain of dust. It is not a message. You elect to read it as a message.","say");
+  say("Level "+G.lvl+" · bosses felled "+G.kills+" · cringe generated "+G.cringeMeter+"%","sys");
+  unlock("Rekt");
+  opts([
+    {t:"<b>Cope, and continue</b>", sub:"Revive at half vigour. Lose 30% of thy purse. Nobody need know.",
+     go:()=>{ G.hp=Math.floor(G.maxhp/2); G.gold=Math.floor(G.gold*.7); cringe(20);
+       say("You are upright. You are lying about what happened. The fellowship permits it, because each of them has a version too.","good");
+       renderAll(); hub(); }},
+    {t:"Begin anew", sub:"Wipe the chronicle. New man. Identical mistakes.",
+     go:()=>{ wipe(); G=newGame(); title(); }}
+  ]);
+}
+
+/* ============================================================
+   TRIVIA ENGINE
+   ============================================================ */
+function askQuiz(n,onDone){
+  const pool=QUIZ.slice(), set=[];
+  while(set.length<n && pool.length) set.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  let i=0, score=0;
+  (function next(){
+    if(i>=set.length){ onDone(score,set.length); return; }
+    const q=set[i];
+    say("<b>Q"+(i+1)+".</b> "+q.q,"npc");
+    opts(q.a.map((a,idx)=>({ t:a, go:()=>{
+      if(idx===q.c){ score++; say("✓ "+q.r,"good"); gainXP(has("gigabrain")?40:20); }
+      else { say("✗ Wrong. "+q.r,"bad"); cringe(12); G.hp=Math.max(1,G.hp-6); say("The shame costs thee six vigour.","bad"); }
+      i++; renderAll(); setTimeout(next,80);
+    }})));
+  })();
+}
+
+/* ============================================================
+   TITLE & CREATION
+   ============================================================ */
+function title(){
+  C.active=false; setScene(null); clearLog(); place("THE TITLE PAGE","—");
+  renderAll();
+  chapter("HEXQUEST — The Sacrifice Phase");
+  say("<b>MATURE AUDIENCES.</b> Coarse language, cartoon gore, crude humour, and one nobleman who will describe a watch to you for forty minutes.","sys");
+  say("A man in smoked spectacles is speaking. He has been speaking some while. He will be speaking when you die.","say");
+  say("You have eighty "+LORE.COIN+" and a conviction unsupported by any evidence. This is sufficient. Historically, it is <em>more</em> than sufficient.","say");
+  say("Parody. All persons, coins and realms herein are fictional and profoundly stupid.","sys");
+  const sv=loadSave();
+  opts([
+    {t:"<b>I am eighteen or older — begin</b>", sub:"Roll a character. Regret it immediately.",
+     go:()=>{ G=newGame(); creation(); }},
+    {t:"<b>Continue the chronicle</b>", sub: sv?("Level "+sv.lvl+" "+(CLASSES[sv.cls]?CLASSES[sv.cls].name:"")):"No chronicle found",
+     if:()=>!!(sv&&sv.cls),
+     go:()=>{ G=sv; G.fx=G.fx||[]; G.done=G.done||[]; G.quests=G.quests||[];
+       say("Loaded. Thy bags are exactly where thou left them, i.e. down.","good"); hub(); }}
+  ]);
+}
+
+function creation(){
+  clearLog(); place("THE ROLLING OF BONES","—");
+  chapter("Roll for a personality");
+  say("Four bones. Discard the meanest. Six times over. This is how men are made.","sys");
+  rollStats();
+}
+function rollStats(){
+  const r4=()=>{ const a=[d(6),d(6),d(6),d(6)].sort((x,y)=>y-x); return a[0]+a[1]+a[2]; };
+  for(const k in G.stats) G.stats[k]=r4();
+  say("PUMP "+G.stats.PUMP+" · COPE "+G.stats.COPE+" · TIMING "+G.stats.TIMING+" · GALAXY BRAIN "+
+      G.stats.GALAXY+" · SHILL "+G.stats.SHILL+" · PAPER "+G.stats.PAPER,"crit");
+  if(G.stats.PAPER>=15) say("Thy PAPER is high. Thou shalt flinch. Thou shalt flinch a very great deal.","bad");
+  if(G.stats.GALAXY<=8) say("Low GALAXY BRAIN. Thou wilt call this “being a normie”, and it will not help thee.","bad");
+  renderAll();
+  opts([
+    {t:"<b>Keep these</b>", sub:"Accept thyself, briefly", go:()=>chooseClass()},
+    {t:"Roll again", sub:"Statistically identical. Emotionally necessary.", cringe:4, go:()=>rollStats()}
+  ]);
+}
+function chooseClass(){
+  chapter("Choose thy calling");
+  opts(Object.keys(CLASSES).map(k=>({ t:"<b>"+CLASSES[k].name+"</b>", sub:CLASSES[k].blurb, go:()=>{
+    G.cls=k;
+    for(const s in CLASSES[k].bonus) G.stats[s]+=CLASSES[k].bonus[s];
+    G.maxhp=60+G.stats.COPE*2; G.hp=G.maxhp;
+    G.maxcope=20+G.stats.COPE; G.cope=G.maxcope;
+    G.name=pick(["Anon of Wessex","Sir Chadwold","Goodman Gildersleeve","Bartholomew Bagholder",
+                 "Wat the Stacker","Nakamoto the Younger","Kevin","Aethelred the Underwater"]);
+    say("Thou art <b>"+G.name+"</b>, "+CLASSES[k].name+".","good");
+    renderAll(); act1();
+  }})));
+}
+
+/* ============================================================
+   ACT I — COPETON
+   ============================================================ */
+function act1(){
+  G.act=1; clearLog(); place("COPETON — ACT I","YEAR 1");
+  chapter("Act I — The Sacrifice Phase");
+  say("Copeton. Population: every man who swore he would sell at twofold and did not.","say");
+  say("A herald stands upon a crate, sweating clean through a tabard that cost eighty "+LORE.COIN+".","say");
+  say("<b>Herald:</b> “The Sacrifice Phase is OPEN! Surrender all thou hast and receive — nothing! But LATER! And possibly MORE nothing!”","npc");
+  quest("Survive the Sacrifice Phase");
+  opts([
+    {t:"<b>Sacrifice everything</b>", sub:"The entire purse. At once. Unread.", cringe:25, go:()=>{
+      const g=G.gold; G.gold=0; G.flags.sacrificed=true;
+      say("You hand over "+g+" "+LORE.COIN+". The herald writes nothing down. There is no ledger. There was never a ledger.","say");
+      say("“Thou art EARLY,” he tells a man who has just become poor.","npc");
+      unlock("Gave It All Away");
+      G.maxhp+=20; G.hp+=20;
+      say("Something within you hardens. You have nothing left to lose, which is its own species of armour. (+20 max vigour)","good");
+      renderAll(); copeton(); }},
+    {t:"Sacrifice half", sub:"Balanced. Cowardly. Correct.", cringe:8, go:()=>{
+      const g=Math.floor(G.gold/2); G.gold-=g; G.maxhp+=8; G.hp+=8;
+      say("You hedge. The herald regards you the way a hound regards a shut door.","say");
+      renderAll(); copeton(); }},
+    {t:"Ask what the utility is", sub:"GALAXY BRAIN check, DC 12", go:()=>{
+      const r=roll("GALAXY",12); say(r.line,"sys");
+      if(r.pass){ G.stats.GALAXY++;
+        say("“The utility,” he says slowly, “is that the number becomes larger.” He is not joking. He has never joked. You learn something true. (+1 GALAXY BRAIN)","good"); }
+      else { cringe(15); say("He talks for nine minutes. You understand less than when he began. Your ears are hot and you have agreed to something.","bad"); }
+      renderAll(); copeton(); }}
+  ]);
+}
+
+function copeton(){
+  setScene("paperhands");
+  place("COPETON — THE STREETS","YEAR "+G.year);
+  chapter("The streets of Copeton");
+  say("Every alley holds a man explaining something to a smaller man who cannot leave.","say");
+  opts([
+    {t:"<b>Fight a Paper-Handed Goblin</b>", sub:"It is selling. It is always selling.",
+     go:()=>startCombat("goblin_pape",()=>copeton())},
+    {t:"The guildhall of "+LORE.ORDER, sub:"All men. Every one of them. Bond with the fellowship.", go:()=>guildhall()},
+    {t:"Visit the merchant", sub:"Goods at a markup thou hast pre-agreed to", go:()=>shop(copeton)},
+    {t:"Attend the Audience", sub:"Trivia — 3 questions. Boons for the correct.", go:()=>{
+      chapter("The Audience");
+      say("It has run four hours. He is answering a question put by a man who has since left, married, and had children.","npc");
+      askQuiz(3,(s,n)=>{
+        say("Thou hast "+s+" of "+n+".","sys");
+        if(s===n){ unlock("Understood The Assignment"); G.stats.SHILL+=2;
+          say("Flawless. (+2 SHILL) Thou now speakest in the cadence of a man who owns a barge.","good"); }
+        renderAll(); copeton(); }); }},
+    {t:"<b>Descend to the Hydra</b>", sub:"Act I boss. Three heads. Three exit strategies. No agreement.",
+     go:()=>{ say("You go down where the water is. Something with several opinions is waiting.","say");
+       startCombat("hydra",()=>{ finishQuest("Survive the Sacrifice Phase"); act2(); }); }},
+    {t:"Rest at the inn", sub:"Sleep. Wake. Check the price before checking on anyone you love.", go:()=>{
+      G.year++; G.hp=Math.min(G.maxhp,G.hp+25); G.cope=G.maxcope; cringe(5);
+      say("You sleep four hours and consult the price before consulting your own family. (+25 vigour)","good");
+      renderAll(); copeton(); }}
+  ]);
+}
+
+function guildhall(){
+  setScene("survivor");
+  place("THE GUILDHALL","YEAR "+G.year);
+  chapter("The Order of the Gilded Hand");
+  say("Forty men. No women. Nobody has ever raised this and nobody ever shall.","say");
+  say("They are oiling one another's armour in total silence. It takes ninety minutes. It takes ninety minutes every single evening.","say");
+  say("<b>Sir Bartholomew:</b> “Brother. Thou art down eighty percent.” He grips your shoulder. He does not let go. “So am I. Is it not <em>magnificent</em>?”","npc");
+  opts([
+    {t:"<b>Embrace him</b>", sub:"Hold. Obviously hold. This is the Rite.", cringe:20, go:()=>{
+      G.maxcope+=10; G.cope=G.maxcope; unlock("The Rite");
+      say("You hold. Nine minutes pass. A lute plays one note and stops out of respect. Two other knights join without a word. (+10 max COPE)","good");
+      say("Nothing is said, because nothing needs to be, because it would ruin it.","say");
+      renderAll(); guildhall(); }},
+    {t:"Oil his gorget", sub:"COPE check, DC 11. Companionable. Utterly silent.", go:()=>{
+      const r=roll("COPE",11); say(r.line,"sys");
+      if(r.pass){ G.stats.PUMP+=1; G.stats.COPE+=1; cringe(15);
+        say("Immaculate work. He inspects it in the sconce-light for a long moment and says only: “...aye.” (+1 PUMP, +1 COPE)","good"); }
+      else { say("You use far too much. It is everywhere. It is in places oil ought never reach. He forgives you instantly, which is worse.","bad"); cringe(25); }
+      renderAll(); guildhall(); }},
+    {t:"Ask why there are no women here", sub:"SHILL check, DC 13. Nobody has ever asked this.", go:()=>{
+      const r=roll("SHILL",13); say(r.line,"sys");
+      if(r.pass){ say("Forty men turn as one. A long pause. “...They did not wish to come,” says Sir Bartholomew, and his voice goes somewhere strange, and he looks at the floor, and someone gently changes the subject to the ladder.","good"); G.stats.GALAXY+=2; say("(+2 GALAXY BRAIN. Some knowledge costs.)","sys"); }
+      else { say("Forty men turn as one. Sir Bartholomew hands you a tankard, puts an arm round you, and begins explaining the ladder. You will not get another chance to ask.","bad"); cringe(10); }
+      renderAll(); guildhall(); }},
+    {t:"Leave the hall", go:()=>copeton()}
+  ]);
+}
+
+/* ============================================================
+   ACT II — THE OUBLIETTE
+   ============================================================ */
+function act2(){
+  G.act=2; clearLog(); place("THE FIFTEEN-YEAR OUBLIETTE — ACT II","YEAR "+G.year);
+  chapter("Act II — The Fifteen-Year Oubliette");
+  say("A ladder descends into the dark. Each rung is a year. There are fifteen rungs.","say");
+  say("A sign reads: PENALTY FOR EARLY WITHDRAWAL. Beneath, smaller: THOU KNEWEST.","say");
+  quest("Descend the fifteen-year ladder");
+  oubliette();
+}
+function oubliette(){
+  setScene("bat");
+  place("THE OUBLIETTE","YEAR "+G.year);
+  opts([
+    {t:"<b>Descend a rung</b>", sub:"A year passes. Something is down here with thee.", go:()=>{
+      G.year++; addFx(G,"staked",99);
+      say("A year passes. You did not touch it. You are proud of this in a manner you cannot explain to your own family, who have stopped asking.","say");
+      if(Math.random()<.6) startCombat(pick(["fud_bat","doomer","goblin_pape"]),()=>oubliette());
+      else { G.gold+=60; say("You find sixty "+LORE.COIN+" in an old coat. Past you was an idiot, but an idiot with a coat.","good"); renderAll(); oubliette(); } }},
+    {t:"The Riddles of the Ladder", sub:"Trivia — 4 questions. The ladder asks. The ladder waits.", go:()=>{
+      chapter("The Riddles of the Ladder");
+      askQuiz(4,(s,n)=>{
+        if(s>=3){ G.maxcope+=25; G.cope=G.maxcope; unlock("Ladder-Certified");
+          say("The ladder is satisfied. (+25 max COPE)","good"); }
+        else { cringe(20); say("The ladder is disappointed. It says nothing. It merely continues downward, which is worse.","bad"); }
+        renderAll(); oubliette(); }); }},
+    {t:"Break the bond early", sub:"Take the penalty. Take the shame. Take it now.", cringe:30, go:()=>{
+      const loss=Math.floor(G.gold*.5); G.gold-=loss; G.stats.PAPER+=3;
+      say("You break the ladder. It costs "+loss+" "+LORE.COIN+" and three PAPER, which is far worse, and permanent.","bad");
+      unlock("Broke The Ladder"); renderAll(); oubliette(); }},
+    {t:"<b>The bottom — "+LORE.OLDROAD+"</b>", sub:"Act II boss. Something has been charging tolls down here since the first fork.",
+     go:()=>{ say("The bottom is wet and expensive. A tentacle marked BASE TOLL tests the air, finds you, and settles.","say");
+       startCombat("kraken",()=>{ finishQuest("Descend the fifteen-year ladder"); act3(); }); }},
+    {t:"The bucket merchant", sub:"He trades from a pail on a rope", go:()=>shop(oubliette)}
+  ]);
+}
+
+/* ============================================================
+   ACT III — THE BRIDGE
+   ============================================================ */
+function act3(){
+  G.act=3; clearLog(); place("THE MARCH BRIDGE — ACT III","YEAR "+G.year);
+  chapter("Act III — The Bridge into "+LORE.REALM);
+  say("The bridge into "+LORE.REALM+" is long, well-lit, and has a man standing in the middle of it holding a polished mirror at his own face.","say");
+  say("<b>Sir Chadwick:</b> “I never bid any man buy. I said that <em>I</em> was buying. Loudly. Upon a barge. In a proclamation titled BUY THIS.”","npc");
+  quest("Cross into "+LORE.REALM);
+  bridge();
+}
+function bridge(){
+  setScene("chad");
+  place("THE MARCH BRIDGE","YEAR "+G.year);
+  opts([
+    {t:"<b>Fight Squire Ackchyually</b>", sub:"He has waited years for this. Literally years.",
+     go:()=>startCombat("replyguy",()=>bridge())},
+    {t:"Ask Chadwick his entry price", sub:"SHILL check, DC 14", go:()=>{
+      const r=roll("SHILL",14); say(r.line,"sys");
+      if(r.pass){ G.gold+=150;
+        say("He tells you. It is lower than yours. He says <em>that</em> part considerably louder. But he drops 150 "+LORE.COIN+" from his sleeve while gesturing at his own jaw.","good"); }
+      else { cringe(15); say("“I am not here to discuss MY position,” says the man whose entire position is discussing his position.","bad"); }
+      renderAll(); bridge(); }},
+    {t:"Buy the course", sub:"200 "+LORE.COIN+". Nine hours of a man saying the word “liquidity”.",
+     dis:()=>G.gold<200, go:()=>{ G.gold-=200; G.stats.GALAXY+=2; G.stats.SHILL+=2; cringe(25);
+       say("Nine hours. Two useful minutes. The two useful minutes concerned tax and you skipped them to reach the part about barges. (+2 GALAXY BRAIN, +2 SHILL)","good");
+       unlock("Bought The Course"); renderAll(); bridge(); }},
+    {t:"<b>Duel Sir Chadwick</b>", sub:"Act III boss. He summons Reply-Knights. So very many Reply-Knights.",
+     go:()=>startCombat("chad",()=>{ finishQuest("Cross into "+LORE.REALM); act4(); })},
+    {t:"Bridge stall", sub:"Coin only. No refunds. No eye contact.", go:()=>shop(bridge)}
+  ]);
+}
+
+/* ============================================================
+   ACT IV — THE CHANCERY
+   ============================================================ */
+function act4(){
+  G.act=4; clearLog(); place("THE CHANCERY OF VIBES — ACT IV","YEAR "+G.year);
+  chapter("Act IV — "+LORE.CHANCERY);
+  say("A beige building. Beige deliberately. Beige as a legal strategy.","say");
+  say("<b>Chancellor Formfiller:</b> “I have reviewed the whitepaper. I have several notes. My first note is: what.”","npc");
+  quest("Survive the paperwork");
+  chancery();
+}
+function chancery(){
+  setScene("karen");
+  place("THE CHANCERY","YEAR "+G.year);
+  opts([
+    {t:"<b>Complete the form</b>", sub:"GALAXY BRAIN check, DC 15. There is a box marked VIBES.", go:()=>{
+      const r=roll("GALAXY",15); say(r.line,"sys");
+      if(r.pass){ G.maxhp+=30; G.hp+=30; unlock("Certificate Of Enthusiasm");
+        say("You describe the coin as “a certificate of enthusiasm”. She writes it down. She is not certain it is wrong. She is not certain of anything any more. (+30 max vigour, from sheer nerve)","good"); }
+      else { cringe(20); G.hp=Math.max(1,G.hp-15);
+        say("You write IT IS NOT A SECURITY IT IS A COMMUNITY in the box marked NAME. She staples it. Sadly. Twice.","bad"); }
+      renderAll(); chancery(); }},
+    {t:"Explain the ledger to her", sub:"Trivia — 3 questions. She is taking notes. Real ones.", go:()=>{
+      askQuiz(3,(s,n)=>{
+        if(s>=2){ G.gold+=200;
+          say("She nods slowly. “So it is a ledger with a fandom.” She is nearer the truth than you have ever been. (+200 "+LORE.COIN+", from an unrelated grant she felt moved to approve)","good"); }
+        else { cringe(18); say("She stops taking notes halfway through. She begins, instead, to draw.","bad"); }
+        renderAll(); chancery(); }); }},
+    {t:"Fight a Hermit in the waiting hall", sub:"He has been here since the halving. He has a number. It is 4.",
+     go:()=>startCombat("doomer",()=>chancery())},
+    {t:"<b>Face Chancellor Formfiller</b>", sub:"Act IV boss. She attacks with bound and indexed paperwork.",
+     go:()=>startCombat("karen",()=>{ finishQuest("Survive the paperwork"); act5(); })},
+    {t:"Chancery vending nook", sub:"It sells only warm things", go:()=>shop(chancery)}
+  ]);
+}
+
+/* ============================================================
+   ACT V — THE SUN THRONE
+   ============================================================ */
+function act5(){
+  G.act=5; clearLog(); place("THE SUN THRONE — ACT V","YEAR "+G.year);
+  chapter("Act V — The Sun Throne");
+  say("A cavern. Within the cavern, a throne. Upon the throne, immense and unbothered, sits "+LORE.FOUNDER+".","say");
+  say("He is vast. He is winged — great gilded fae-wings, entirely decorative, permanently mid-flourish. He is upholstered in "+LORE.BRAND+" from throat to boot, and he will mention this within ninety seconds, twice.","say");
+  say("It is night. It is a cavern. The smoked spectacles are non-negotiable.","say");
+  say("<b>"+LORE.FOUNDER+":</b> “Welcome. Before we begin — allow me to answer a question nobody has asked, at length, in a voice like a slow puncture.”","npc");
+  quest("Confront "+LORE.FOUNDER);
+  throne();
+}
+function throne(){
+  setScene("heartburn");
+  place("THE SUN THRONE","YEAR "+G.year);
+  opts([
+    {t:"<b>Endure the Audience</b>", sub:"Trivia — 5 questions. He is testing thee. He is also simply talking.", go:()=>{
+      chapter("The Six-Hour Audience");
+      askQuiz(5,(s,n)=>{
+        say("Score: "+s+" of "+n+".","sys");
+        if(s>=4){ for(const k in G.stats) G.stats[k]+=3; unlock("He Removed The Spectacles");
+          say("“Thou understandest,” he says. He removes the smoked spectacles. Beneath them: further smoked spectacles. (+3 to every attribute)","good"); }
+        else { cringe(25); G.hp=Math.max(1,G.hp-20);
+          say("“Thou dost not yet understand,” he says, kindly, and begins again from the very beginning.","bad"); }
+        renderAll(); throne(); }); }},
+    {t:"Compliment the timepiece", sub:"SHILL check, DC 16. It is very large. It is genuinely, structurally large.", go:()=>{
+      const r=roll("SHILL",16); say(r.line,"sys");
+      if(r.pass){ G.gold+=500; unlock("Watch Enjoyer");
+        say("He speaks of the timepiece for forty minutes. You are given 500 "+LORE.COIN+" for listening. It is the only honest transaction in this entire chronicle.","good"); }
+      else { cringe(20); say("“It is not about the timepiece,” he says, from behind the timepiece, which is generating its own weather.","bad"); }
+      renderAll(); throne(); }},
+    {t:"Compliment the doublet", sub:"SHILL check, DC 14. It is "+LORE.BRAND+". He would like thee to know it is "+LORE.BRAND+".", go:()=>{
+      const r=roll("SHILL",14); say(r.line,"sys");
+      if(r.pass){ G.stats.SHILL+=3; unlock("Fashion Forward");
+        say("His wings unfurl to their full and useless span. Every sconce in the cavern gutters. “"+LORE.BRAND+",” he says, with his whole chest, to a man who already said so. (+3 SHILL)","good"); }
+      else { cringe(18); say("“It is bespoke,” he corrects, wounded, and will not now look at thee for some minutes.","bad"); }
+      renderAll(); throne(); }},
+    {t:"Final merchant", sub:"Last chance. Spend it. Thou canst not take it hence and certainly canst not sell it.",
+     go:()=>shop(throne)},
+    {t:"<b>⚔ FIGHT "+LORE.FOUNDER.toUpperCase()+"</b>", sub:"Two forms. No fleeing. He does not stop talking.", cls:"gold",
+     go:()=>finalFight()},
+    {t:"Walk away", sub:"Leave. Go outside. There is an outside.", go:()=>endingGrass()}
+  ]);
+}
+
+function finalFight(){
+  clearLog();
+  say("He rises. The cavern brightens for reasons nobody can afterwards account for. The wings beat once, achieve nothing, and look magnificent doing it.","say");
+  startCombat("heartburn",()=>{
+    clearLog();
+    chapter("The Second Form");
+    say("He falls. Then he does not fall. He points, with one enormous gilded sleeve, behind you.","say");
+    say("<b>"+LORE.FOUNDER+":</b> “I am not the final boss. I never was. I am merely the loudest.”","npc");
+    say("The cavern wall opens. Behind it: a vault that has held since the first block was hewn and has never once moved.","say");
+    startCombat("origin",()=>finale(),()=>defeat());
+  },()=>defeat());
+}
+
+/* ============================================================
+   ENDINGS
+   ============================================================ */
+function finale(){
+  clearLog(); C.active=false; place("THE END","YEAR "+G.year);
+  finishQuest("Confront "+LORE.FOUNDER);
+  unlock("Finished The Chronicle");
+  if(G.cringeMeter>=70) endingBecame(); else endingDiamond();
+}
+function endingDiamond(){
+  chapter("Ending — DIAMOND HANDS ETERNAL");
+  say("The vault opens. Within lies every bag any man ever wept over, and a note.","say");
+  say("The note reads: <b>thou never sold, therefore thou never lost.</b>","npc");
+  say("You are technically correct, which is the only variety of correct this genre supplies. You go outside. The sun is real and it is unbearable. You put on the smoked spectacles.","say");
+  say("You have become the thing. Slowly. Reasonably. With excellent risk management throughout.","say");
+  endStats();
+}
+function endingBecame(){
+  chapter("Ending — THOU ART BECOME THE HEARTBURN");
+  say("Thy cringe finished at "+G.cringeMeter+"%. This is not survivable as a personality.","say");
+  say("The throne is warm. Someone hands you the spectacles. Someone else begins the Audience.","say");
+  say("Wings you do not remember growing unfurl behind you, gilded, vast, and entirely decorative. Somebody in the dark says “"+LORE.BRAND+"” approvingly. It was you. You said it.","say");
+  say("You begin answering a question nobody asked. You will be here six hours. You will be here six years.","say");
+  say("Far below, a new man with eighty "+LORE.COIN+" walks into Copeton. You are so terribly happy for him.","npc");
+  unlock("Became The Boss");
+  endStats();
+}
+function endingGrass(){
+  clearLog(); C.active=false; place("OUTSIDE","—");
+  chapter("Secret Ending — TOUCHED GRASS");
+  say("You turn round and walk out of the cavern.","say");
+  say("Nobody stops you. That is the part that gets you, later. Nobody even notices.","say");
+  say("Outside there is weather, and a dog, and a person who asks how you are and then waits for the answer.","say");
+  say("You do not check the price. You check it in the morning — but you do not check it now, and that is the whole of the ending.","say");
+  unlock("Touched Grass");
+  endStats();
+}
+function endStats(){
+  say("Level "+G.lvl+" · "+CLASSES[G.cls].name+" · bosses felled "+G.kills+" · purse "+G.gold+" "+LORE.COIN+" · cringe "+G.cringeMeter+"%","sys");
+  say("Achievements: "+(G.achievements.join(", ")||"none whatsoever, somehow"),"sys");
+  renderAll();
+  opts([{t:"<b>Begin anew</b>", sub:"Do it again. Thou wilt make different mistakes. Thou wilt not.",
+    go:()=>{ wipe(); G=newGame(); title(); }}]);
+}
+
+/* ============================================================
+   MERCHANT
+   ============================================================ */
+function shop(back){
+  chapter("The merchant");
+  say("A man with a trestle table and absolute confidence.","npc");
+  const disc=has("seminar")?.8:1;
+  opts(Object.keys(ITEMS).map(k=>{
+    const it=ITEMS[k], cost=Math.floor(it.cost*disc);
+    return { t:"<b>"+it.name+"</b> — "+cost, sub:it.desc+(it.once&&G.owned[k]?" — already owned":""),
+      dis:()=>G.gold<cost||(it.once&&G.owned[k]),
+      go:()=>{ G.gold-=cost;
+        if(it.once){ G.owned[k]=true; it.use(); }
+        else { G.items[k]=(G.items[k]||0)+1; say("Bought "+it.name+".","good"); }
+        renderAll(); shop(back); } };
+  }).concat([
+    {t:"Wager 50 "+LORE.COIN, sub:"d20. Fifteen or better pays threefold. The house explains the odds and thou noddest.",
+     dis:()=>G.gold<50, go:()=>{ G.gold-=50; const r=d20(); say("⬡ d20 → "+r,"sys");
+       if(r>=15){ G.gold+=150; unlock("The House Slipped");
+         say("You win 150. You will remember this, and not the other eleven times.","good"); }
+       else { cringe(10); say("Nothing. You do the thing where you say it was worth it for the story.","bad"); }
+       renderAll(); shop(back); }},
+    {t:"Leave", go:()=>{ renderAll(); back(); }}
+  ]));
+}
+
+function hub(){ ({1:copeton,2:oubliette,3:bridge,4:chancery,5:throne}[G.act]||copeton)(); }
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+document.getElementById("tick").innerHTML =
+  CRIES.map(x=>"<b>❧</b> "+x).join(" &nbsp;&nbsp;&nbsp; ")+" &nbsp;&nbsp;&nbsp; ";
+G=newGame();
+title();
+</script>
