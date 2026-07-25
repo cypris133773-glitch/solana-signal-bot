@@ -392,3 +392,25 @@ canvas#game{display:block;width:100%;height:100%;touch-action:none}
   .meta-tabs{gap:4px}
   .mtab{font-size:10px;padding:7px 2px}
 }
+
+/* ---------- CODEX: story, bestiary, ascension ---------- */
+.menu-nav.five{grid-template-columns:repeat(5,1fr)}
+.menu-nav.five button{font-size:14px;padding:7px 1px}
+.menu-nav.five button span{font-size:9px}
+.lore-list{display:flex;flex-direction:column;gap:9px}
+.lore-entry{background:rgba(255,255,255,.04);border:1px solid var(--stroke);border-radius:12px;padding:11px 13px}
+.lore-entry b{display:block;font-size:13.5px;font-weight:900;letter-spacing:.6px;color:var(--gold);margin-bottom:4px}
+.lore-entry i{display:block;font-family:Georgia,serif;font-size:12.5px;color:#d9c8ff;margin-bottom:6px}
+.lore-entry p{font-size:12px;line-height:1.55;color:var(--muted)}
+.lore-entry .lk{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:0}
+.lore-entry.locked{opacity:.55}
+.lore-entry.locked b{color:var(--muted)}
+.asc-card{display:flex;align-items:center;gap:11px;width:100%;padding:10px 11px;cursor:pointer;text-align:left;
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:12px;color:var(--ink);
+  font-family:inherit;transition:.12s}
+.asc-card:hover{background:rgba(139,47,255,.18)}
+.ac-tier{font-size:19px;font-weight:900;width:30px;text-align:center;color:var(--gold);flex-shrink:0}
+.ac-rew{font-size:12.5px;font-weight:900;color:#c9ccff;flex-shrink:0}
+.asc-card.sel{border-color:var(--gold);box-shadow:0 0 14px rgba(255,207,51,.35);background:rgba(255,207,51,.08)}
+.asc-card.locked{opacity:.55;cursor:default}
+@media (pointer:coarse), (max-width:820px){ .menu-nav.five button{font-size:12px} .menu-nav.five button span{font-size:8px} }

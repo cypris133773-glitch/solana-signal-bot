@@ -324,9 +324,9 @@ function baseZoom(){
 }
 function camPunch(m){ const z=(camZoomT||1)*m; if(z>camZoom)camZoom=z; }
 let time,kills,hexCollected,gemCollected,wave,spawnTimer,screenShake,lastTs=0,potionRespawn=0;
-let ethBank=0, ethEarned=0, bossKills=0;
+let ethBank=0, ethEarned=0, bossKills=0, runKinds={};
 let hitStop=0; function hitStopFor(s){ if(s>hitStop)hitStop=s; }
-let bossIntro=null, heartT=0, slowmo=0, flash=null;
+let bossIntro=null, heartT=0, slowmo=0, flash=null, storyBeat=null;
 function screenFlash(color,dur){ flash={c:color,t:dur,max:dur}; }
 let bossTimer,bossCount,boss,combo,comboT,rerolls;
 let quipT=0;
@@ -372,7 +372,7 @@ function newRun(){
     crit:0.05,critMul:2,leech:0,armor:0,luck:0,dodge:0,thorns:0,revives:(SAVE.meta.revive||0),berserk:0,buffT:0,buffDmg:1};
   enemies=[];bullets=[];ebullets=[];gems=[];particles=[];floaters=[];novas=[];beams=[];
   zones=[];mines=[];turrets=[];chains=[];lobs=[];whips=[];
-  time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;ethBank=0;ethEarned=0;bossKills=0;hitStop=0;bossIntro=null;heartT=0;slowmo=0;flash=null;achQueue=[];biomeIdx=0;camZoom=baseZoom();camZoomT=camZoom;camLook={x:0,y:0};VW=W/camZoom;VH=H/camZoom;cam.x=player.x-VW/2;cam.y=player.y-VH/2;
+  time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;ethBank=0;ethEarned=0;bossKills=0;runKinds={};hitStop=0;bossIntro=null;heartT=0;slowmo=0;flash=null;storyBeat=null;achQueue=[];biomeIdx=0;camZoom=baseZoom();camZoomT=camZoom;camLook={x:0,y:0};VW=W/camZoom;VH=H/camZoom;cam.x=player.x-VW/2;cam.y=player.y-VH/2;
   bossTimer=BOSS_INTERVAL;bossCount=0;boss=null;combo=0;comboT=0;rerolls=3+(SAVE.meta.reroll||0);
   potionRespawn=0;
   recalc(); for(let i=0;i<7;i++) spawnEnemy('fud'); spawnPotion(); updateShopUI();
@@ -440,8 +440,8 @@ function readInput(){ let x=0,y=0;
 
 // ---------- spawning (endless) ----------
 // gentle early, ramps hard late so player power growth doesn't outscale the threat
-function hpScale(){ return 1+time*0.016+Math.pow(time/60,1.9)*0.11; }
-function dmgScale(){ return (1+time*0.009+Math.pow(time/85,1.6)*0.075)*0.75; }
+function hpScale(){ return (1+time*0.016+Math.pow(time/60,1.9)*0.11)*curAsc().hp; }
+function dmgScale(){ return (1+time*0.009+Math.pow(time/85,1.6)*0.075)*0.75*curAsc().dmg; }
 function spawnEnemy(kind,ox,oy,scaleMul){ if(enemies.length>230)return;
   const def=ENEMIES[kind]; let x,y;
   if(ox!==undefined){x=ox;y=oy;} else{ const a=rand(0,TAU),d=Math.min(Math.max(VW||W,VH||H)*0.62,600)+rand(0,120);
@@ -449,7 +449,7 @@ function spawnEnemy(kind,ox,oy,scaleMul){ if(enemies.length>230)return;
   const hs=hpScale()*(scaleMul||1), ds=dmgScale();
   const elite = ox===undefined && time>60 && def.b!=='exploder' && def.b!=='grower' && Math.random()<Math.min(0.12,0.02+time*0.0002);
   const r=def.r*(elite?1.4:1), hp=def.hp*hs*(elite?2.4:1);
-  enemies.push({kind,x,y,r,hp,maxHp:hp,spd:Math.min(player.baseSpeed*0.9,def.spd*0.85*(1+time*0.002))*(elite?0.92:1),dmg:def.dmg*ds*(elite?1.15:1),xp:def.xp*(elite?3:1),
+  enemies.push({kind,x,y,r,hp,maxHp:hp,spd:Math.min(player.baseSpeed*0.94,def.spd*0.85*(1+time*0.002)*curAsc().spd)*(elite?0.92:1),dmg:def.dmg*ds*(elite?1.15:1),xp:def.xp*(elite?3:1),
     b:def.b,sp:def.sp,c:def.c,baseR:r,hitFlash:0,knock:{x:0,y:0},boss:false,elite:!!elite,wob:rand(0,TAU),t1:rand(0,2),t2:0,def});
 }
 function spawnBoss(){ const b=BOSSES[bossCount%BOSSES.length]; const loop=Math.floor(bossCount/BOSSES.length);
@@ -602,6 +602,7 @@ function damageEnemy(e,dmg,fx,fy,knock,crit){ e.hp-=dmg;
   sfx('hit');
   if(e.hp<=0)killEnemy(e); }
 function killEnemy(e){ const idx=enemies.indexOf(e); if(idx<0)return; enemies.splice(idx,1); kills++; addCombo();
+  if(e.kind&&e.kind!=='boss')runKinds[e.kind]=(runKinds[e.kind]||0)+1;
   burst(e.x,e.y,e.c,e.boss?70:9);
   if(Math.random()<0.15) floater(pick(KILL_QUIPS),e.x,e.y-14,'#66ffa0',false);
   if(e.b==='splitter'){ for(let i=0;i<2;i++) spawnEnemy('jeet',e.x+rand(-14,14),e.y+rand(-14,14)); }
@@ -1111,6 +1112,14 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
   // screen-space toast + boss bar
   if(toastMsg){ ctx.globalAlpha=clamp(toastMsg.life,0,1); ctx.textAlign='center'; ctx.font='bold 22px Trebuchet MS,sans-serif'; ctx.fillStyle=toastMsg.color; ctx.strokeStyle='rgba(0,0,0,.7)'; ctx.lineWidth=4; ctx.strokeText(toastMsg.msg,W/2,88); ctx.fillText(toastMsg.msg,W/2,88); ctx.globalAlpha=1; }
   if(boss&&enemies.includes(boss)){ const bw=Math.min(W*0.62,520),bh=14,bx=(W-bw)/2,by=H-30; ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(bx-2,by-2,bw+4,bh+4); ctx.fillStyle='#2a0d18'; ctx.fillRect(bx,by,bw,bh); ctx.fillStyle='#ff3b5c'; ctx.fillRect(bx,by,bw*clamp(boss.hp/boss.maxHp,0,1),bh); ctx.textAlign='center'; ctx.font='bold 12px Trebuchet MS'; ctx.fillStyle='#fff'; ctx.fillText(boss.emoji+' '+boss.name.toUpperCase(),W/2,by-5); }
+  // story beat — cinematic chapter subtitle on entering a new biome
+  if(storyBeat){ const a=clamp(storyBeat.t>4.4?(5-storyBeat.t)/0.6:Math.min(1,storyBeat.t/0.9),0,1);
+    ctx.save(); ctx.globalAlpha=a; ctx.textAlign='center';
+    ctx.font='900 13px Trebuchet MS,sans-serif'; ctx.fillStyle='rgba(255,207,51,.9)';
+    ctx.fillText(storyBeat.n.toUpperCase(),W/2,H-96);
+    ctx.font='italic 600 16px Georgia,serif'; ctx.lineWidth=4; ctx.strokeStyle='rgba(0,0,0,.75)';
+    ctx.strokeText(storyBeat.q,W/2,H-72); ctx.fillStyle='#f4ecff'; ctx.fillText(storyBeat.q,W/2,H-72);
+    ctx.restore(); }
   // boss intro card (cinematic slam-in warning)
   if(bossIntro){ const life=bossIntro.t, DUR=2.4, age=DUR-life; ctx.textAlign='center';
     if(age<0.18){ ctx.save(); ctx.globalAlpha=(1-age/0.18)*0.5; ctx.fillStyle='#ff2d5c'; ctx.fillRect(0,0,W,H); ctx.restore(); }
@@ -1167,7 +1176,8 @@ function biomeNow(){
   let i=0; for(let k=0;k<BIOMES.length;k++) if(time>=BIOMES[k].t)i=k;
   const cur=BIOMES[i], nxt=BIOMES[i+1];
   // announce on entry
-  if(i!==biomeIdx){ biomeIdx=i; if(state==='playing'&&i>0){ toast('◈ '+cur.n,'rgb('+cur.edge+')'); screenFlash(cur.edge,0.35); screenShake=Math.max(screenShake,10); } }
+  if(i!==biomeIdx){ biomeIdx=i; if(state==='playing'&&i>0){ toast('◈ '+cur.n,'rgb('+cur.edge+')'); screenFlash(cur.edge,0.35); screenShake=Math.max(screenShake,10);
+      const ch=CHAPTERS[i]; if(ch)storyBeat={q:ch.q,n:ch.n,t:5}; } }
   if(!nxt)return cur;
   const span=Math.min(45,nxt.t-cur.t), t=clamp((time-(nxt.t-span))/span,0,1); // cross-fade into the next biome
   if(t<=0)return cur;
@@ -1223,7 +1233,8 @@ function startGame(){ const sb=document.getElementById('start-bg'); if(sb){ try{
   state='playing'; lastTs=performance.now(); setTimeout(resize,200); }
 function gameOver(){ state='over'; sfx('death');
   // ---- bank meta currency: unspent ETH + a survival bonus ----
-  const bonus=Math.floor(time/30)+bossKills*5, banked=Math.floor(ethBank)+bonus;
+  const kk=SAVE.kindKills||(SAVE.kindKills={}); for(const k in runKinds)kk[k]=(kk[k]||0)+runKinds[k];
+  const bonus=Math.floor(time/30)+bossKills*5, banked=Math.round((Math.floor(ethBank)+bonus)*curAsc().reward);
   SAVE.eth+=banked;
   const st=SAVE.stats; st.runs++; st.kills+=kills; st.bosses+=bossKills; st.ethTotal+=ethEarned; st.playTime+=time;
   if(time>st.bestTime)st.bestTime=time; if(wave>st.bestWave)st.bestWave=wave;
@@ -1258,6 +1269,7 @@ function loop(ts){ requestAnimationFrame(loop); let dt=(ts-lastTs)/1000; lastTs=
   if(screenShake>0&&!frozen)screenShake=Math.max(0,screenShake-dt*40);
   if(toastMsg){toastMsg.life-=dt; if(toastMsg.life<=0)toastMsg=null;}
   if(bossIntro){ bossIntro.t-=dt; if(bossIntro.t<=0)bossIntro=null; }
+  if(storyBeat){ storyBeat.t-=dt; if(storyBeat.t<=0)storyBeat=null; }
   if(state==='playing'&&!frozen){ time+=wdt; updateThreat(); updateSpawning(wdt); updatePlayer(wdt); updateEnemies(wdt); updateWeapons(wdt);
     updateBullets(wdt); updateEBullets(wdt); updateBeams(wdt); updateNovas(wdt); updateWhips(wdt); updateMines(wdt); updateLobs(wdt); updateTurrets(wdt); updateChains(wdt); updateGems(wdt); updateParticles(wdt); updateHud();
     if(player.hp/player.maxHp<0.3){ heartT-=dt; if(heartT<=0){ heartT=0.75; if(A.ctx&&A.on){ const t=A.ctx.currentTime; note(58,t,0.13,'sine',0.55,A.sfx,42); note(50,t+0.15,0.15,'sine',0.42,A.sfx,34); } } } else heartT=0;
@@ -1268,12 +1280,12 @@ function loop(ts){ requestAnimationFrame(loop); let dt=(ts-lastTs)/1000; lastTs=
    META PROGRESSION — persistent save, permanent upgrades, achievements
    ========================================================================= */
 const SAVE_KEY='hexsurvivor_save_v1';
-const DEFAULT_SAVE={eth:0,char:'rh',chars:{},meta:{},ach:{},
+const DEFAULT_SAVE={eth:0,char:'rh',chars:{},asc:0,kindKills:{},meta:{},ach:{},
   stats:{runs:0,kills:0,bosses:0,ethTotal:0,playTime:0,bestTime:0,bestWave:0,bestLevel:0,bestKills:0},
   opts:{master:0.85,music:0.5,sfx:0.6,shake:1,quality:1}};
 let SAVE=(function(){ const d=JSON.parse(JSON.stringify(DEFAULT_SAVE));
   try{ const raw=localStorage.getItem(SAVE_KEY); const s=raw?JSON.parse(raw):{};
-    return {eth:s.eth||0, char:s.char||'rh', chars:s.chars||{}, meta:Object.assign(d.meta,s.meta||{}),
+    return {eth:s.eth||0, char:s.char||'rh', chars:s.chars||{}, asc:s.asc||0, kindKills:s.kindKills||{}, meta:Object.assign(d.meta,s.meta||{}),
       ach:s.ach||{}, stats:Object.assign(d.stats,s.stats||{}), opts:Object.assign(d.opts,s.opts||{})};
   }catch(_){ return d; } })();
 // keep the meta table in sync with META so new upgrades always exist on old saves
@@ -1305,6 +1317,88 @@ const META={
   reroll:   {g:'UTILITY', n:'Rerolls',     i:'🎲',d:'+1 level-up reroll',     max:5, base:40, grow:1.70}
 };
 const META_GROUPS=['OFFENCE','DEFENCE','UTILITY'];
+/* =========================================================================
+   LORE — story chapters, bestiary, and the ascension ladder
+   ========================================================================= */
+const CHAPTERS=[
+ {id:'ch1',n:'I · Number Go Up',at:0,
+  q:'"Longer pays better." Nobody asked what it pays in.',
+  t:'It began as a promise. Stake it, hold it, and time itself would pay you back with interest. The charts only pointed one way, and the one way was up. Everyone was early. Everyone was a genius. Nobody read the contract.'},
+ {id:'ch2',n:'II · The Cave',at:150,
+  q:'"It is only a correction."',
+  t:'The bears did not arrive. They were always here, sleeping under the floor of every green candle, waiting for the volume to thin. When the exits narrowed, the cave lit up with the eyes of everyone who swore they would never sell.'},
+ {id:'ch3',n:'III · The Rug',at:300,
+  q:'"Team tokens are locked. Trust me."',
+  t:'The liquidity left at 3am, in one transaction, through nine wallets, into a mixer. The floor you were standing on was never a floor. It was a rug, and someone had been holding the corner the entire time, smiling in the group chat.'},
+ {id:'ch4',n:'IV · Liquidation',at:450,
+  q:'"Margin is a tool for professionals."',
+  t:'Leverage does not care about conviction. The cascade began somewhere far away and arrived as a wall of red, closing every position it touched, converting years of patience into a single line in somebody else\'s profit report.'},
+ {id:'ch5',n:'V · The Void',at:600,
+  q:'"Still early."',
+  t:'Past a certain depth the tickers stop meaning anything. There is no floor, no ceiling, no exit liquidity — only the trade, forever, against something that was never trying to beat you. It was only ever trying to outlast you.'}
+];
+const BESTIARY={
+ fud:{n:'FUDster',t:'Spreads doubt for free, which is the only thing it has ever produced. Weak alone, endless in a crowd.'},
+ jeet:{n:'Jeet',t:'Sells the bottom every time, then buys the top to prove it was right. Fast, fragile, everywhere.'},
+ paper:{n:'Paper Hands',t:'Folds at the first red candle. Its grip has never survived contact with volatility.'},
+ shorter:{n:'Shorter',t:'Profits when you bleed, and moves in the zig-zag of somebody watching two charts at once.'},
+ nocoiner:{n:'Nocoiner',t:'Has been calling it a scam since it was worth nothing. Will still be calling it a scam at zero.'},
+ bear:{n:'Bear',t:'The market\'s immune system. Slow, heavy, and completely indifferent to your entry price.'},
+ scammer:{n:'Scammer',t:'Charges in with a whitepaper and a countdown timer. Both are fake. The damage is not.'},
+ maxi:{n:'BTC Maxi',t:'Splits into more of itself when destroyed, each fragment more certain than the last.'},
+ taxman:{n:'Taxman',t:'Does not chase. Does not need to. Fires from range and always knows your cost basis.'},
+ sec:{n:'SEC Agent',t:'Arrives years late with subpoenas for a party that already ended. Heavily armored.'},
+ exploder:{n:'Ponzi Bomb',t:'Sustainable right up until the moment it is not. Detonates on contact with reality.'},
+ influencer:{n:'Shill Influencer',t:'Summons followers faster than you can clear them. Paid in advance, obviously.'},
+ whalee:{n:'Dump Whale',t:'Moves slowly because it can afford to. One position exit reshapes the entire chart.'},
+ botswarm:{n:'Trading Bot',t:'No thesis, no fear, no sleep. Front-runs you by four milliseconds and calls it alpha.'},
+ flashloan:{n:'Flash Loaner',t:'Borrows a fortune, drains a pool, and repays it inside one block. Blinks through the arena.'},
+ coper:{n:'Copetrader',t:'Heals the others by explaining why this is actually bullish. Refuses to look at the portfolio.'},
+ coldwallet:{n:'Cold Wallet',t:'Impenetrable. Contains everything. The seed phrase was on a laptop that died in 2019.'},
+ grower:{n:'Bomb Creep',t:'Swells with proximity, feeding on your hesitation, until it converts the distance between you into damage.'}
+};
+const ASC=[
+ {n:'Standard',      d:'The market as intended.',                 hp:1.00,dmg:1.00,spd:1.00,reward:1.00,req:0},
+ {n:'Volatile',      d:'Enemies have +25% health.',               hp:1.25,dmg:1.00,spd:1.00,reward:1.25,req:180},
+ {n:'Bear Market',   d:'+25% health, +20% damage.',               hp:1.25,dmg:1.20,spd:1.00,reward:1.55,req:300},
+ {n:'Capitulation',  d:'+50% health, +20% damage, +8% speed.',    hp:1.50,dmg:1.20,spd:1.08,reward:1.95,req:450},
+ {n:'Black Swan',    d:'+80% health, +45% damage, +15% speed.',   hp:1.80,dmg:1.45,spd:1.15,reward:2.60,req:600}
+];
+function ascUnlocked(i){ return i===0 || (SAVE.stats.bestTime||0)>=ASC[i].req; }
+function curAsc(){ return ASC[Math.min(SAVE.asc||0,ASC.length-1)]; }
+function setAsc(i){ if(!ascUnlocked(i))return; SAVE.asc=i; saveGame(); renderAsc(); refreshMenuEth(); }
+function renderAsc(){ const el=document.getElementById('asc-list'); if(!el)return; el.innerHTML='';
+  ASC.forEach((a,i)=>{ const un=ascUnlocked(i), sel=(SAVE.asc||0)===i;
+    const b=document.createElement('button'); b.className='asc-card'+(sel?' sel':'')+(un?'':' locked');
+    b.innerHTML='<span class="ac-tier">'+i+'</span><span class="cc-body"><b>'+a.n+'</b><small>'+
+      (un?a.d:'Survive '+fmtTime(a.req)+' to unlock')+'</small></span>'+
+      '<span class="ac-rew">'+(un?'×'+a.reward.toFixed(2)+' Ξ':'🔒')+'</span>';
+    if(un)b.addEventListener('click',()=>setAsc(i)); el.appendChild(b); }); }
+
+let loreTab='STORY';
+function renderCodex(){
+  const tb=document.getElementById('lore-tabs');
+  if(tb){ tb.innerHTML=''; for(const g of ['STORY','BESTIARY','ASCENSION']){ const t=document.createElement('button');
+    t.className='mtab'+(g===loreTab?' on':''); t.textContent=g;
+    t.addEventListener('click',()=>{ loreTab=g; renderCodex(); }); tb.appendChild(t); } }
+  const story=document.getElementById('lore-story'), best=document.getElementById('lore-best'), asc=document.getElementById('lore-asc');
+  [['STORY',story],['BESTIARY',best],['ASCENSION',asc]].forEach(([g,el])=>{ if(el)el.classList.toggle('hidden',g!==loreTab); });
+  if(loreTab==='ASCENSION'){ renderAsc(); return; }
+  if(loreTab==='STORY'&&story){ story.innerHTML='';
+    for(const c of CHAPTERS){ const seen=(SAVE.stats.bestTime||0)>=c.at;
+      const d=document.createElement('div'); d.className='lore-entry'+(seen?'':' locked');
+      d.innerHTML=seen
+        ? '<b>'+c.n+'</b><i>'+c.q+'</i><p>'+c.t+'</p>'
+        : '<b>'+c.n+'</b><p class="lk">🔒 Survive '+fmtTime(c.at)+' to uncover this chapter.</p>';
+      story.appendChild(d); } }
+  if(loreTab==='BESTIARY'&&best){ best.innerHTML=''; const kk=SAVE.kindKills||{};
+    for(const k in BESTIARY){ const n=kk[k]||0, e=BESTIARY[k], un=n>=10;
+      const d=document.createElement('div'); d.className='lore-entry'+(un?'':' locked');
+      d.innerHTML=un
+        ? '<b>'+e.n+' <span class="lk">· '+n.toLocaleString()+' slain</span></b><p>'+e.t+'</p>'
+        : '<b>'+e.n+'</b><p class="lk">🔒 Defeat '+(10-n)+' more to complete this file.</p>';
+      best.appendChild(d); } } }
+
 syncMetaKeys();
 function metaCost(k){ return Math.round(META[k].base*Math.pow(META[k].grow,SAVE.meta[k]||0)); }
 function buyMeta(k){ const lv=SAVE.meta[k]||0; if(lv>=META[k].max)return; const c=metaCost(k);
@@ -1344,9 +1438,9 @@ function applyAudioOpts(){ const o=SAVE.opts;
   if(levelSfxEl)levelSfxEl.volume=Math.min(1,0.9*o.sfx*o.master); }
 
 // ---------- menu screens ----------
-const SCREENS=['start-screen','chars-screen','upgrades-screen','options-screen','stats-screen'];
+const SCREENS=['start-screen','chars-screen','upgrades-screen','options-screen','stats-screen','lore-screen'];
 function goScreen(id){ for(const s of SCREENS){ if(s===id)show(s); else hide(s); }
-  if(id==='upgrades-screen')renderMeta(); if(id==='stats-screen')renderStats(); if(id==='options-screen')renderOptions(); if(id==='chars-screen')renderChars(); }
+  if(id==='upgrades-screen')renderMeta(); if(id==='stats-screen')renderStats(); if(id==='options-screen')renderOptions(); if(id==='chars-screen')renderChars(); if(id==='lore-screen')renderCodex(); }
 let metaTab='OFFENCE';
 function renderMeta(){ const el=document.getElementById('meta-list'); if(!el)return;
   document.getElementById('up-eth').textContent=Math.floor(SAVE.eth).toLocaleString();
@@ -1421,6 +1515,7 @@ function quitToMenu(){ state='menu'; document.getElementById('app').classList.ad
 function refreshMenuEth(){ const e=document.getElementById('menu-eth'); if(e)e.textContent=Math.floor(SAVE.eth).toLocaleString(); }
 (function(){
   const on=(id,fn,ev)=>{ const e=document.getElementById(id); if(e)e.addEventListener(ev||'click',fn); };
+  on('nav-lore',()=>goScreen('lore-screen'));
   on('nav-chars',()=>goScreen('chars-screen'));
   on('nav-upgrades',()=>goScreen('upgrades-screen'));
   on('nav-options',()=>goScreen('options-screen'));
