@@ -311,7 +311,18 @@ let player,enemies,bullets,ebullets,gems,particles,floaters,novas,beams,zones,mi
 let cam={x:0,y:0};
 // cinematic camera: damped follow, movement look-ahead, impact zoom punch
 let camZoom=1, camZoomT=1, camLook={x:0,y:0}, VW=0, VH=0;
-function camPunch(z){ camZoom=Math.max(camZoom,z); }
+// Base zoom adapts to the display: phones pull back so you can read the fight,
+// big desktop screens push in so the action fills the frame.
+function baseZoom(){
+  if(!W||!H)return 1;
+  const short=Math.min(W,H);
+  if(short<520||W<820) return 0.86;   // phones / small windows: see more world
+  if(W>=1600) return 1.26;            // large desktop: cinematic close-up
+  if(W>=1280) return 1.18;
+  if(W>=1024) return 1.10;
+  return 1.0;
+}
+function camPunch(m){ const z=(camZoomT||1)*m; if(z>camZoom)camZoom=z; }
 let time,kills,hexCollected,gemCollected,wave,spawnTimer,screenShake,lastTs=0,potionRespawn=0;
 let ethBank=0, ethEarned=0, bossKills=0;
 let hitStop=0; function hitStopFor(s){ if(s>hitStop)hitStop=s; }
@@ -356,7 +367,7 @@ function newRun(){
     crit:0.05,critMul:2,leech:0,armor:0,luck:0,dodge:0,thorns:0,revives:0,berserk:0,buffT:0,buffDmg:1};
   enemies=[];bullets=[];ebullets=[];gems=[];particles=[];floaters=[];novas=[];beams=[];
   zones=[];mines=[];turrets=[];chains=[];lobs=[];whips=[];
-  time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;ethBank=0;ethEarned=0;bossKills=0;hitStop=0;bossIntro=null;heartT=0;slowmo=0;flash=null;achQueue=[];biomeIdx=0;camZoom=1;camZoomT=1;camLook={x:0,y:0};cam.x=player.x-W/2;cam.y=player.y-H/2;
+  time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;ethBank=0;ethEarned=0;bossKills=0;hitStop=0;bossIntro=null;heartT=0;slowmo=0;flash=null;achQueue=[];biomeIdx=0;camZoom=baseZoom();camZoomT=camZoom;camLook={x:0,y:0};VW=W/camZoom;VH=H/camZoom;cam.x=player.x-VW/2;cam.y=player.y-VH/2;
   bossTimer=BOSS_INTERVAL;bossCount=0;boss=null;combo=0;comboT=0;rerolls=3;
   potionRespawn=0;
   recalc(); for(let i=0;i<7;i++) spawnEnemy('fud'); spawnPotion(); updateShopUI();
@@ -914,7 +925,7 @@ function drawEnemy(e){ if(e.x<cam.x-90||e.x>cam.x+VW+90||e.y<cam.y-110||e.y>cam.
 function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
   let sx=0,sy=0; if(screenShake>0&&SAVE.opts.shake){sx=rand(-screenShake,screenShake);sy=rand(-screenShake,screenShake);}
   // ---- cinematic camera ----
-  camZoomT = boss ? 0.92 : (enemies.length>70 ? 0.96 : 1);          // pull back for bosses / swarms
+  camZoomT = baseZoom() * (boss ? 0.92 : (enemies.length>70 ? 0.96 : 1)); // device base, pulled back for bosses / swarms
   camZoom += (camZoomT-camZoom)*0.055;                               // ease toward target (punches decay too)
   VW=W/camZoom; VH=H/camZoom;
   const lookX=player.facing.x*Math.min(90,VW*0.09), lookY=player.facing.y*Math.min(70,VH*0.08);
