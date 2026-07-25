@@ -376,7 +376,7 @@ function newRun(){
   time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;ethBank=0;ethEarned=0;bossKills=0;runKinds={};hitStop=0;bossIntro=null;heartT=0;slowmo=0;flash=null;storyBeat=null;surgeT=48;surgeN=0;surgeActive=0;achQueue=[];biomeIdx=0;camZoom=baseZoom();camZoomT=camZoom;camLook={x:0,y:0};VW=W/camZoom;VH=H/camZoom;cam.x=player.x-VW/2;cam.y=player.y-VH/2;
   bossTimer=BOSS_INTERVAL;bossCount=0;boss=null;combo=0;comboT=0;rerolls=3+(SAVE.meta.reroll||0);
   potionRespawn=0;
-  recalc(); const seed=(SAVE.meta.seed||0); for(let i=0;i<seed;i++){ player.level++; player.xpNext=Math.floor(5+player.level*3.6+player.level*player.level*0.6); }
+  recalc(); const seed=(SAVE.meta.seed||0); for(let i=0;i<seed;i++){ player.level++; player.xpNext=Math.floor(7+player.level*6.2+player.level*player.level*1.35); }
   for(let i=0;i<7;i++) spawnEnemy('fud'); spawnPotion(); updateShopUI();
 }
 function spawnPotion(){ const a=rand(0,TAU),d=rand(90,170);
@@ -700,8 +700,8 @@ function updateGems(dt){ const p=player,pullR=100*p.magnetMul,pr2=pullR*pullR;
   // hard safety cap: silently bank the oldest stray XP so the field can't balloon
   if(gems.length>260){ let over=gems.length-260; for(let i=0;i<gems.length&&over>0;i++){ const g=gems[i]; if(g.type==='hex'||g.type==='gem'){ gainXp(g.xp); if(g.type==='hex')hexCollected+=g.xp; else gemCollected++; gems.splice(i,1); i--; over--; } } }
   if(potionRespawn>0){ potionRespawn-=dt; if(potionRespawn<=0)spawnPotion(); } }
-function gainXp(a){ const p=player; p.xp+=a*p.xpMul;
-  while(p.xp>=p.xpNext){ p.xp-=p.xpNext; p.level++; p.xpNext=Math.floor(5+p.level*3.6+p.level*p.level*0.6); heal(10);
+function gainXp(a){ const p=player; p.xp+=a*p.xpMul*0.8;
+  while(p.xp>=p.xpNext){ p.xp-=p.xpNext; p.level++; p.xpNext=Math.floor(7+p.level*6.2+p.level*p.level*1.35); heal(10);
     if(p.level%4===0){ spawnMagnet();
       const hw=p.weapons.hexstake; if(hw&&(hw.orbitBonus||0)<4){ hw.orbitBonus=(hw.orbitBonus||0)+1; floater('+HEXAGON',p.x,p.y-34,'#ffcf33',true); } }
     if(state==='playing'){ screenFlash('255,215,90',0.26); camPunch(1.05); burst(p.x,p.y,'#ffe08a',22); novas.push({x:p.x,y:p.y,r:0,max:p.r*7,dmg:0,knock:0,hitSet:new Set(),color:'#ffe08a'}); openLevelUp(); return; } } }
