@@ -44,12 +44,6 @@
         <button id="mute-btn" title="Sound">♪</button>
         <button id="pause-btn" title="Pause">II</button>
       </div>
-      <div id="lvlshop">
-        <div class="ls-head">LVL SHOP <span class="ls-eth">Ξ<span id="shop-eth">0</span></span></div>
-        <button class="ls-buy" id="buy-speed"><b>⚡ Speed</b><span class="ls-sub"><span id="ls-speed-lv">Lv 0</span> · <span id="ls-speed-cost">Ξ4</span></span></button>
-        <button class="ls-buy" id="buy-damage"><b>⚔ Damage</b><span class="ls-sub"><span id="ls-damage-lv">Lv 0</span> · <span id="ls-damage-cost">Ξ5</span></span></button>
-        <button class="ls-buy" id="buy-hp"><b>❤ HP</b><span class="ls-sub"><span id="ls-hp-lv">Lv 0</span> · <span id="ls-hp-cost">Ξ5</span></span></button>
-      </div>
     </div>
   </header>
 
@@ -73,6 +67,12 @@
 
     <main id="play-area">
       <canvas id="game"></canvas>
+      <div id="lvlshop">
+        <div class="ls-head">LVL SHOP <span class="ls-eth">Ξ<span id="shop-eth">0</span></span></div>
+        <button class="ls-buy" id="buy-speed"><b>⚡ Speed</b><span class="ls-sub"><span id="ls-speed-lv">Lv 0</span> · <span id="ls-speed-cost">Ξ4</span></span></button>
+        <button class="ls-buy" id="buy-damage"><b>⚔ Damage</b><span class="ls-sub"><span id="ls-damage-lv">Lv 0</span> · <span id="ls-damage-cost">Ξ5</span></span></button>
+        <button class="ls-buy" id="buy-hp"><b>❤ HP</b><span class="ls-sub"><span id="ls-hp-lv">Lv 0</span> · <span id="ls-hp-cost">Ξ5</span></span></button>
+      </div>
       <div id="joystick" class="hidden"><div id="joystick-knob"></div></div>
       <div id="combo" class="hidden"></div>
       <div id="pausebanner">
@@ -129,7 +129,8 @@
 <div id="upgrades-screen" class="overlay hidden">
   <div class="panel wide scr">
     <div class="scr-head"><div class="scr-title">⬆ PERMANENT UPGRADES</div>
-      <div class="scr-sub">Banked ETH carries between runs · <b>Ξ<span id="up-eth">0</span></b></div></div>
+      <div class="scr-sub">Banked ETH carries between runs · <b>Ξ<span id="up-eth">0</span></b> · invested <b><span id="up-prog">0 / 0</span></b></div></div>
+    <div id="meta-tabs" class="meta-tabs"></div>
     <div id="meta-list" class="meta-list"></div>
     <button class="btn-back" data-back>← Back</button>
   </div>

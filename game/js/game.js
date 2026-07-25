@@ -333,10 +333,14 @@ let quipT=0;
 
 /* ---------- PLAYABLE CHARACTERS ---------- */
 const CHARS=[
-  {id:'rh',    n:'RICHARD HEART', i:'🎩', w:'hexstake',  hp:1.00, spd:1.00, dmg:1.00, d:'Balanced. Orbiting HEX stakes.', cost:0},
-  {id:'staker',n:'THE STAKER',    i:'🛡', w:'hexstake',  hp:1.45, spd:0.88, dmg:0.88, d:'Tanky and slow. Outlasts everything.', cost:60},
-  {id:'degen', n:'THE DEGEN',     i:'🎲', w:'pulsex',    hp:0.70, spd:1.22, dmg:1.35, d:'Glass cannon. Huge damage, dies fast.', cost:90},
-  {id:'whale', n:'THE WHALE',     i:'🐋', w:'pulsefork', hp:1.25, spd:0.94, dmg:1.15, d:'Heavy hitter with piercing shots.', cost:140}
+  {id:'rh',    n:'RICHARD HEART', i:'🎩', w:'hexstake',  hp:1.00,spd:1.00,dmg:1.00,crit:0,   haste:1.00,luck:0,   d:'Balanced. Orbiting HEX stakes.',              p:'Jack of all trades',      cost:0},
+  {id:'staker',n:'THE STAKER',    i:'🛡', w:'hexstake',  hp:1.45,spd:0.88,dmg:0.88,crit:0,   haste:0.95,luck:0,   d:'Tanky and slow. Outlasts everything.',        p:'+2 armor, +0.5 HP/sec',   cost:60,  armor:2, regen:0.5},
+  {id:'degen', n:'THE DEGEN',     i:'🎲', w:'pulsex',    hp:0.70,spd:1.22,dmg:1.35,crit:0.10,haste:1.05,luck:0.15,d:'Glass cannon. Huge damage, dies fast.',       p:'+10% crit, +15% luck',    cost:90},
+  {id:'whale', n:'THE WHALE',     i:'🐋', w:'pulsefork', hp:1.25,spd:0.94,dmg:1.15,crit:0,   haste:0.92,luck:0,   d:'Heavy hitter with piercing shots.',           p:'+1 projectile',           cost:140, proj:1},
+  {id:'sniper',n:'THE ANALYST',   i:'🎯', w:'chartspike',hp:0.85,spd:1.05,dmg:1.10,crit:0.22,haste:0.90,luck:0,   d:'Slow, precise, devastating crits.',           p:'+22% crit, 3x crit dmg',  cost:200, critMul:1.0},
+  {id:'bot',   n:'TRADING BOT',   i:'🤖', w:'pulsefork', hp:0.95,spd:1.00,dmg:0.80,crit:0,   haste:1.55,luck:0,   d:'Fires relentlessly. Death by a thousand cuts.',p:'+55% attack speed',       cost:260},
+  {id:'vamp',  n:'THE LIQUIDATOR',i:'🩸', w:'pulsex',    hp:1.10,spd:1.02,dmg:1.05,crit:0,   haste:1.00,luck:0,   d:'Heals from every hit landed.',                p:'+4% lifesteal',           cost:340, leech:0.04},
+  {id:'gigachad',n:'GIGACHAD',    i:'💪', w:'hexstake',  hp:1.30,spd:1.12,dmg:1.30,crit:0.08,haste:1.15,luck:0.10,d:'No weaknesses. Earned, not given.',          p:'Everything, slightly',    cost:600}
 ];
 function charUnlocked(id){ const c=CHARS.find(x=>x.id===id); return !c||c.cost===0||!!(SAVE.chars&&SAVE.chars[id]); }
 function selectChar(id){ if(!charUnlocked(id))return; SAVE.char=id; saveGame(); renderChars(); }
@@ -352,7 +356,8 @@ function renderChars(){ const el=document.getElementById('char-list'); if(!el)re
     const stat=(lbl,v)=>{ const pct=Math.round((v-1)*100); const cls=pct>0?'up':(pct<0?'down':'');
       return '<i class="'+cls+'">'+lbl+' '+(pct>0?'+':'')+pct+'%</i>'; };
     b.innerHTML='<span class="cc-ic">'+c.i+'</span><span class="cc-body"><b>'+c.n+'</b><small>'+c.d+'</small>'+
-      '<span class="cc-stats">'+stat('HP',c.hp)+stat('SPD',c.spd)+stat('DMG',c.dmg)+'</span></span>'+
+      '<span class="cc-perk">✦ '+c.p+'</span>'+
+      '<span class="cc-stats">'+stat('HP',c.hp)+stat('SPD',c.spd)+stat('DMG',c.dmg)+(c.haste!==1?stat('ASPD',c.haste):'')+'</span></span>'+
       '<span class="cc-tag">'+(sel?'✓':(un?'':'Ξ'+c.cost))+'</span>';
     b.addEventListener('click',()=>un?selectChar(c.id):buyChar(c.id)); el.appendChild(b); } }
 
@@ -364,11 +369,11 @@ function newRun(){
     level:1,xp:0,xpNext:5,invuln:0,facing:{x:1,y:0},
     weapons:startW,passives:{},evolved:{},shop:{speed:0,damage:0,hp:0},
     dmgMul:1,hasteMul:1,magnetMul:1,xpMul:1,regen:0,areaMul:1,projSpeedMul:1,durMul:1,extraProj:0,
-    crit:0.05,critMul:2,leech:0,armor:0,luck:0,dodge:0,thorns:0,revives:0,berserk:0,buffT:0,buffDmg:1};
+    crit:0.05,critMul:2,leech:0,armor:0,luck:0,dodge:0,thorns:0,revives:(SAVE.meta.revive||0),berserk:0,buffT:0,buffDmg:1};
   enemies=[];bullets=[];ebullets=[];gems=[];particles=[];floaters=[];novas=[];beams=[];
   zones=[];mines=[];turrets=[];chains=[];lobs=[];whips=[];
   time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;ethBank=0;ethEarned=0;bossKills=0;hitStop=0;bossIntro=null;heartT=0;slowmo=0;flash=null;achQueue=[];biomeIdx=0;camZoom=baseZoom();camZoomT=camZoom;camLook={x:0,y:0};VW=W/camZoom;VH=H/camZoom;cam.x=player.x-VW/2;cam.y=player.y-VH/2;
-  bossTimer=BOSS_INTERVAL;bossCount=0;boss=null;combo=0;comboT=0;rerolls=3;
+  bossTimer=BOSS_INTERVAL;bossCount=0;boss=null;combo=0;comboT=0;rerolls=3+(SAVE.meta.reroll||0);
   potionRespawn=0;
   recalc(); for(let i=0;i<7;i++) spawnEnemy('fud'); spawnPotion(); updateShopUI();
 }
@@ -385,19 +390,19 @@ function recalc(){ const p=player,P=p.passives;
   p.speed=p.baseSpeed*(1+(P.speed||0)*0.10+sh.speed*0.06+(M.swift||0)*0.02);
   p.magnetMul=1+(P.magnet||0)*0.28+(M.magnet||0)*0.10;
   p.dmgMul=(1+(P.power||0)*0.12+(P.gigachad||0)*0.08+(P.glasscannon||0)*0.25)*1.25*(1+sh.damage*0.10)*(1+(M.power||0)*0.04)*(CH.dmg||1);
-  p.hasteMul=1+(P.haste||0)*0.09+(P.gigachad||0)*0.08+(P.overclock||0)*0.08;
-  p.regen=(P.regen||0)*0.7;
+  p.hasteMul=(1+(P.haste||0)*0.09+(P.gigachad||0)*0.08+(P.overclock||0)*0.08)*(1+(M.haste||0)*0.03)*(CH.haste||1);
+  p.regen=(P.regen||0)*0.7+(M.regen||0)*0.25+(CH.regen||0);
   p.xpMul=(1+(P.greed||0)*0.18)*(1+(M.greed||0)*0.06);
-  p.areaMul=1+(P.area||0)*0.12+(P.gigachad||0)*0.08;
-  p.extraProj=(P.amount||0);
+  p.areaMul=(1+(P.area||0)*0.12+(P.gigachad||0)*0.08)*(1+(M.area||0)*0.03);
+  p.extraProj=(P.amount||0)+(M.proj||0)+(CH.proj||0);
   p.projSpeedMul=1+(P.projspd||0)*0.16;
   p.durMul=1+(P.duration||0)*0.16;
-  p.armor=(P.armor||0)*2+(M.armor||0);
-  p.crit=0.05+(P.crit||0)*0.07;
-  p.critMul=2+(P.critdmg||0)*0.30;
-  p.leech=(P.leech||0)*0.025+(P.vamplord||0)*0.03;
-  p.luck=(P.luck||0)*0.10;
-  p.dodge=(P.dodge||0)*0.04;
+  p.armor=(P.armor||0)*2+(M.armor||0)+(CH.armor||0);
+  p.crit=0.05+(P.crit||0)*0.07+(M.crit||0)*0.015+(CH.crit||0);
+  p.critMul=2+(P.critdmg||0)*0.30+(M.critdmg||0)*0.08+(CH.critMul||0);
+  p.leech=(P.leech||0)*0.025+(P.vamplord||0)*0.03+(M.leech||0)*0.004+(CH.leech||0);
+  p.luck=(P.luck||0)*0.10+(M.luck||0)*0.03+(CH.luck||0);
+  p.dodge=(P.dodge||0)*0.04+(M.dodge||0)*0.015;
   p.thorns=(P.thorns||0)*0.20;
   p.berserk=(P.greeddmg||0)*0.25;
   p.execute=(P.executioner||0)*0.04;
@@ -605,7 +610,7 @@ function killEnemy(e){ const idx=enemies.indexOf(e); if(idx<0)return; enemies.sp
   const drops=e.boss?36:1;
   for(let i=0;i<drops;i++) dropGem(e.x+rand(-e.r,e.r),e.y+rand(-e.r,e.r),e.xp,'hex');
   // ETH currency — normal enemies drop occasionally (tougher = better odds), bosses drop a stack
-  if(!e.boss && Math.random()<0.12+e.xp*0.02) dropGem(e.x+rand(-6,6),e.y+rand(-6,6),1,'eth');
+  if(!e.boss && Math.random()<(0.12+e.xp*0.02)*(1+(SAVE.meta.income||0)*0.08)) dropGem(e.x+rand(-6,6),e.y+rand(-6,6),1,'eth');
   if(e.elite){ for(let i=0;i<3;i++)dropGem(e.x+rand(-16,16),e.y+rand(-16,16),1,'eth'); for(let i=0;i<3;i++)dropGem(e.x+rand(-16,16),e.y+rand(-16,16),Math.max(3,e.xp),'gem'); dropGem(e.x,e.y,0,'heart'); burst(e.x,e.y,'#ffd23b',26); floater('ELITE DOWN',e.x,e.y-e.r-6,'#ffd23b',true); hitStopFor(0.05); }
   if(e.boss){ boss=null; bossKills++; for(let i=0;i<14;i++)dropGem(e.x+rand(-70,70),e.y+rand(-70,70),4,'gem'); for(let i=0;i<6;i++)dropGem(e.x+rand(-60,60),e.y+rand(-60,60),0,'heart');
     for(let i=0;i<10;i++)dropGem(e.x+rand(-80,80),e.y+rand(-80,80),1,'eth');
@@ -1175,24 +1180,44 @@ function loop(ts){ requestAnimationFrame(loop); let dt=(ts-lastTs)/1000; lastTs=
    META PROGRESSION — persistent save, permanent upgrades, achievements
    ========================================================================= */
 const SAVE_KEY='hexsurvivor_save_v1';
-const DEFAULT_SAVE={eth:0,char:'rh',chars:{},meta:{power:0,vitality:0,swift:0,greed:0,armor:0,magnet:0},ach:{},
+const DEFAULT_SAVE={eth:0,char:'rh',chars:{},meta:{},ach:{},
   stats:{runs:0,kills:0,bosses:0,ethTotal:0,playTime:0,bestTime:0,bestWave:0,bestLevel:0,bestKills:0},
   opts:{master:0.85,music:0.5,sfx:0.6,shake:1,quality:1}};
-let SAVE=(function(){ try{ const raw=localStorage.getItem(SAVE_KEY); if(!raw)return JSON.parse(JSON.stringify(DEFAULT_SAVE));
-    const s=JSON.parse(raw); const d=JSON.parse(JSON.stringify(DEFAULT_SAVE));
-    return {eth:s.eth||0, char:s.char||'rh', chars:s.chars||{}, meta:Object.assign(d.meta,s.meta||{}), ach:s.ach||{}, stats:Object.assign(d.stats,s.stats||{}), opts:Object.assign(d.opts,s.opts||{})};
-  }catch(_){ return JSON.parse(JSON.stringify(DEFAULT_SAVE)); } })();
+let SAVE=(function(){ const d=JSON.parse(JSON.stringify(DEFAULT_SAVE));
+  try{ const raw=localStorage.getItem(SAVE_KEY); const s=raw?JSON.parse(raw):{};
+    return {eth:s.eth||0, char:s.char||'rh', chars:s.chars||{}, meta:Object.assign(d.meta,s.meta||{}),
+      ach:s.ach||{}, stats:Object.assign(d.stats,s.stats||{}), opts:Object.assign(d.opts,s.opts||{})};
+  }catch(_){ return d; } })();
+// keep the meta table in sync with META so new upgrades always exist on old saves
+function syncMetaKeys(){ for(const k in META) if(SAVE.meta[k]===undefined)SAVE.meta[k]=0; }
 function saveGame(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }catch(_){} }
 
 // permanent upgrades bought with banked ETH between runs
 const META={
-  power:{n:'Damage',i:'⚔',d:'+4% attack damage',max:10,base:12,grow:1.35},
-  vitality:{n:'Vitality',i:'❤',d:'+12 max HP',max:10,base:10,grow:1.35},
-  swift:{n:'Swiftness',i:'⚡',d:'+2% move speed',max:8,base:12,grow:1.40},
-  greed:{n:'Greed',i:'💰',d:'+6% XP gained',max:8,base:14,grow:1.40},
-  armor:{n:'Plating',i:'🛡',d:'+1 armor',max:8,base:16,grow:1.42},
-  magnet:{n:'Magnetism',i:'🧲',d:'+10% pickup range',max:6,base:12,grow:1.40}
+  // ── OFFENCE ──
+  power:    {g:'OFFENCE', n:'Damage',      i:'⚔', d:'+4% attack damage',      max:15,base:12, grow:1.42},
+  haste:    {g:'OFFENCE', n:'Attack Speed',i:'🔥',d:'+3% attack speed',       max:12,base:16, grow:1.45},
+  crit:     {g:'OFFENCE', n:'Crit Chance', i:'✷', d:'+1.5% crit chance',      max:12,base:18, grow:1.45},
+  critdmg:  {g:'OFFENCE', n:'Crit Damage', i:'💥',d:'+8% crit damage',        max:10,base:20, grow:1.48},
+  area:     {g:'OFFENCE', n:'Area',        i:'⭕',d:'+3% attack size',        max:10,base:18, grow:1.45},
+  proj:     {g:'OFFENCE', n:'Projectiles', i:'🎯',d:'+1 projectile',          max:3, base:120,grow:2.20},
+  // ── DEFENCE ──
+  vitality: {g:'DEFENCE', n:'Vitality',    i:'❤', d:'+12 max HP',             max:15,base:10, grow:1.40},
+  armor:    {g:'DEFENCE', n:'Plating',     i:'🛡',d:'+1 armor',               max:12,base:16, grow:1.46},
+  regen:    {g:'DEFENCE', n:'Regeneration',i:'✚', d:'+0.25 HP/sec',           max:10,base:22, grow:1.48},
+  dodge:    {g:'DEFENCE', n:'Evasion',     i:'💨',d:'+1.5% dodge chance',     max:10,base:20, grow:1.48},
+  leech:    {g:'DEFENCE', n:'Lifesteal',   i:'🩸',d:'+0.4% damage as heal',   max:10,base:24, grow:1.50},
+  revive:   {g:'DEFENCE', n:'Second Life', i:'🔄',d:'Revive once per run',    max:2, base:200,grow:2.50},
+  // ── UTILITY ──
+  swift:    {g:'UTILITY', n:'Swiftness',   i:'⚡',d:'+2% move speed',         max:12,base:12, grow:1.42},
+  greed:    {g:'UTILITY', n:'Greed',       i:'💰',d:'+6% XP gained',          max:12,base:14, grow:1.44},
+  magnet:   {g:'UTILITY', n:'Magnetism',   i:'🧲',d:'+10% pickup range',      max:10,base:12, grow:1.42},
+  luck:     {g:'UTILITY', n:'Luck',        i:'🍀',d:'+3% rare drop chance',   max:10,base:20, grow:1.46},
+  income:   {g:'UTILITY', n:'ETH Income',  i:'Ξ', d:'+8% ETH from enemies',   max:10,base:22, grow:1.48},
+  reroll:   {g:'UTILITY', n:'Rerolls',     i:'🎲',d:'+1 level-up reroll',     max:5, base:40, grow:1.70}
 };
+const META_GROUPS=['OFFENCE','DEFENCE','UTILITY'];
+syncMetaKeys();
 function metaCost(k){ return Math.round(META[k].base*Math.pow(META[k].grow,SAVE.meta[k]||0)); }
 function buyMeta(k){ const lv=SAVE.meta[k]||0; if(lv>=META[k].max)return; const c=metaCost(k);
   if(SAVE.eth<c){ const b=document.getElementById('meta-'+k); if(b){ b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); } return; }
@@ -1234,14 +1259,27 @@ function applyAudioOpts(){ const o=SAVE.opts;
 const SCREENS=['start-screen','chars-screen','upgrades-screen','options-screen','stats-screen'];
 function goScreen(id){ for(const s of SCREENS){ if(s===id)show(s); else hide(s); }
   if(id==='upgrades-screen')renderMeta(); if(id==='stats-screen')renderStats(); if(id==='options-screen')renderOptions(); if(id==='chars-screen')renderChars(); }
+let metaTab='OFFENCE';
 function renderMeta(){ const el=document.getElementById('meta-list'); if(!el)return;
   document.getElementById('up-eth').textContent=Math.floor(SAVE.eth).toLocaleString();
+  // total invested levels, for a sense of progress
+  let tot=0,cap=0; for(const k in META){ tot+=SAVE.meta[k]||0; cap+=META[k].max; }
+  const pe=document.getElementById('up-prog'); if(pe)pe.textContent=tot+' / '+cap;
+  // group tabs
+  const tb=document.getElementById('meta-tabs');
+  if(tb){ tb.innerHTML=''; for(const g of META_GROUPS){ const t=document.createElement('button');
+    t.className='mtab'+(g===metaTab?' on':''); t.textContent=g;
+    t.addEventListener('click',()=>{ metaTab=g; renderMeta(); }); tb.appendChild(t); } }
   el.innerHTML='';
-  for(const k in META){ const m=META[k],lv=SAVE.meta[k]||0,maxed=lv>=m.max,c=metaCost(k),afford=SAVE.eth>=c;
+  for(const k in META){ const m=META[k]; if(m.g!==metaTab)continue;
+    const lv=SAVE.meta[k]||0,maxed=lv>=m.max,c=metaCost(k),afford=SAVE.eth>=c;
     const b=document.createElement('button'); b.className='meta-card'+(maxed?' maxed':(afford?' afford':'')); b.id='meta-'+k;
-    b.innerHTML='<span class="mc-ic">'+m.i+'</span><span class="mc-body"><b>'+m.n+'</b><small>'+m.d+'</small>'+
-      '<span class="mc-pips">'+Array.from({length:m.max},(_,i)=>'<i class="'+(i<lv?'on':'')+'"></i>').join('')+'</span></span>'+
-      '<span class="mc-cost">'+(maxed?'MAX':'Ξ'+c)+'</span>';
+    // show pips only when the track is short enough to read; otherwise a bar
+    const pips=m.max<=12
+      ? '<span class="mc-pips">'+Array.from({length:m.max},(_,i)=>'<i class="'+(i<lv?'on':'')+'"></i>').join('')+'</span>'
+      : '<span class="mc-bar"><i style="width:'+Math.round(lv/m.max*100)+'%"></i></span>';
+    b.innerHTML='<span class="mc-ic">'+m.i+'</span><span class="mc-body"><b>'+m.n+'</b><small>'+m.d+'</small>'+pips+'</span>'+
+      '<span class="mc-right"><span class="mc-cost">'+(maxed?'MAX':'Ξ'+c)+'</span><span class="mc-lv">'+lv+'/'+m.max+'</span></span>';
     if(!maxed)b.addEventListener('click',()=>buyMeta(k)); el.appendChild(b); } }
 function renderStats(){ const s=SAVE.stats;
   const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=v;};
