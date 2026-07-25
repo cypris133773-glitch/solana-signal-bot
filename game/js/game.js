@@ -974,14 +974,52 @@ function draw(){ if(W<=0)return; ctx.clearRect(0,0,W,H);
     ctx.save(); ctx.translate(gm.x,gm.y);
     ctx.save(); ctx.globalAlpha=0.25; ctx.fillStyle='#000'; ctx.beginPath(); ctx.ellipse(0,gm.r*1.1,gm.r*0.9,gm.r*0.34,0,0,TAU); ctx.fill(); ctx.restore();
     ctx.translate(0,Math.sin(time*4+gm.x)*2);
-    if(gm.type==='heart'){ ctx.fillStyle=sphereGrad(ctx,gm.r,'#ff4d7d'); ctx.shadowColor='#ff2d9b'; ctx.shadowBlur=10; ctx.save(); ctx.scale(.85,.85); heartPath(ctx,gm.r); ctx.fill(); ctx.restore(); }
-    else if(gm.type==='gem'){ ctx.rotate((time*2+gm.x)%TAU); ctx.fillStyle=manyGems?'#4fd0ff':sphereGrad(ctx,gm.r,'#4fd0ff'); ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.8,0); ctx.lineTo(0,gm.r); ctx.lineTo(-gm.r*.8,0); ctx.closePath(); ctx.fill(); ctx.fillStyle='rgba(255,255,255,.65)'; ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.32,-gm.r*.2); ctx.lineTo(0,gm.r*.05); ctx.closePath(); ctx.fill(); }
+    if(gm.type==='heart'){ // volumetric pulsing heart
+      const pu=1+0.07*Math.sin(time*5+gm.x);
+      if(!manyGems){ ctx.save(); ctx.globalCompositeOperation='lighter';
+        const hg=ctx.createRadialGradient(0,0,gm.r*0.2,0,0,gm.r*2.4);
+        hg.addColorStop(0,rgba('#ff2d9b',0.55)); hg.addColorStop(1,rgba('#ff2d9b',0));
+        ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(0,0,gm.r*2.4,0,TAU); ctx.fill(); ctx.restore(); }
+      ctx.save(); ctx.scale(.85*pu,.85*pu);
+      ctx.fillStyle=sphereGrad(ctx,gm.r,'#ff4d7d'); heartPath(ctx,gm.r); ctx.fill();
+      ctx.globalAlpha=0.75; ctx.fillStyle='#fff';
+      ctx.beginPath(); ctx.ellipse(-gm.r*0.34,-gm.r*0.34,gm.r*0.2,gm.r*0.13,-0.6,0,TAU); ctx.fill(); ctx.restore(); }
+    else if(gm.type==='gem'){ // faceted crystal spinning on its axis (scaleX = cos gives real 3D rotation)
+      const spin=time*2.4+gm.x*0.05, sx=Math.cos(spin), edge=Math.abs(sx)<0.16;
+      if(!manyGems){ ctx.save(); ctx.globalCompositeOperation='lighter';
+        const gg=ctx.createRadialGradient(0,0,gm.r*0.15,0,0,gm.r*2.5);
+        gg.addColorStop(0,rgba('#4fd0ff',0.6)); gg.addColorStop(1,rgba('#4fd0ff',0));
+        ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(0,0,gm.r*2.5,0,TAU); ctx.fill(); ctx.restore(); }
+      ctx.save(); ctx.scale(Math.max(0.1,Math.abs(sx)),1);
+      const gb=ctx.createLinearGradient(-gm.r,-gm.r,gm.r,gm.r);
+      gb.addColorStop(0,'#e8fbff'); gb.addColorStop(0.45,'#4fd0ff'); gb.addColorStop(1,'#1b4f96');
+      ctx.fillStyle=edge?'#bfeeff':gb;
+      ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.82,0); ctx.lineTo(0,gm.r); ctx.lineTo(-gm.r*.82,0); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.7)';                       // top facet catches the light
+      ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.34,-gm.r*.18); ctx.lineTo(0,gm.r*.06); ctx.lineTo(-gm.r*.34,-gm.r*.18); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(0,0,0,.22)';                            // lower facet in shade
+      ctx.beginPath(); ctx.moveTo(0,gm.r*.06); ctx.lineTo(gm.r*.82,0); ctx.lineTo(0,gm.r); ctx.closePath(); ctx.fill();
+      ctx.restore(); }
     else if(gm.type==='magnet'){ ctx.shadowColor='#8dff3b'; ctx.shadowBlur=16; if(magnetReady){ const fr=Math.floor(time*12)%MAGNET_SHEET.count, w=gm.r*3.6, h=w*MAGNET_SHEET.fh/MAGNET_SHEET.fw; ctx.drawImage(magnetImg, fr*MAGNET_SHEET.fw,0,MAGNET_SHEET.fw,MAGNET_SHEET.fh, -w/2,-h/2, w,h); } else drawMagnet(ctx,gm.r); }
     else if(gm.type==='potion'){ ctx.shadowColor='#00c2ff'; ctx.shadowBlur=15; drawPulseLogo(ctx,gm.r*1.5); }
     else if(gm.type==='eth'){ ctx.shadowColor='#c9ccff'; ctx.shadowBlur=13; if(ethReady){ const fr=Math.floor(time*10)%ETH_SHEET.count, h=gm.r*2.9, w=h*ETH_SHEET.fw/ETH_SHEET.fh; ctx.drawImage(ethImg, fr*ETH_SHEET.fw,0,ETH_SHEET.fw,ETH_SHEET.fh, -w/2,-h/2, w,h); } else { ctx.fillStyle='#454a75'; ctx.beginPath(); ctx.moveTo(0,-gm.r); ctx.lineTo(gm.r*.7,0); ctx.lineTo(0,gm.r*.5); ctx.lineTo(-gm.r*.7,0); ctx.closePath(); ctx.fill(); } }
-    else { if(manyGems){ // cheap gold hex coin at scale
-        ctx.fillStyle='#ffb43b'; hexP(ctx,gm.r); ctx.fill(); ctx.fillStyle='#7a4a10'; hexP(ctx,gm.r*0.55); ctx.fill();
-      } else { drawWatch(ctx,gm.r*1.15); } } ctx.restore(); }
+    else { // gold coin spinning on its vertical axis — scaleX by cos fakes true 3D rotation
+      const spin=time*3+gm.x*0.06, sx=Math.cos(spin), thin=Math.abs(sx);
+      if(!manyGems){ ctx.save(); ctx.globalCompositeOperation='lighter';
+        const cg=ctx.createRadialGradient(0,0,gm.r*0.2,0,0,gm.r*2.3);
+        cg.addColorStop(0,rgba('#ffcf33',0.5)); cg.addColorStop(1,rgba('#ffcf33',0));
+        ctx.fillStyle=cg; ctx.beginPath(); ctx.arc(0,0,gm.r*2.3,0,TAU); ctx.fill(); ctx.restore(); }
+      ctx.save(); ctx.scale(Math.max(0.08,thin),1);
+      const cb=ctx.createLinearGradient(-gm.r,-gm.r,gm.r,gm.r);
+      cb.addColorStop(0,'#fff3b0'); cb.addColorStop(0.42,'#ffb43b'); cb.addColorStop(1,'#8a5410');
+      ctx.fillStyle=cb; hexP(ctx,gm.r); ctx.fill();
+      ctx.strokeStyle='rgba(255,240,180,.85)'; ctx.lineWidth=1.2; hexP(ctx,gm.r); ctx.stroke();
+      if(thin>0.35){ ctx.fillStyle='rgba(122,74,16,.85)'; hexP(ctx,gm.r*0.52); ctx.fill();     // struck face
+        ctx.globalAlpha=0.7; ctx.fillStyle='#fff';
+        ctx.beginPath(); ctx.ellipse(-gm.r*0.3,-gm.r*0.34,gm.r*0.22,gm.r*0.12,-0.6,0,TAU); ctx.fill(); }
+      ctx.restore();
+      if(thin<0.3){ ctx.fillStyle='#c98a20'; ctx.fillRect(-gm.r*0.1,-gm.r,gm.r*0.2,gm.r*2); }   // edge-on rim
+    } ctx.restore(); }
   ctx.shadowBlur=0;
   // zones/mines/lobs
   for(const m of mines){ orb3D(ctx,m.x,m.y,m.r,m.armed>0?'#8a5a2b':'#ff8a00',0,0); }
@@ -1419,6 +1457,6 @@ document.getElementById('reroll-btn').addEventListener('click',doReroll);
 renderBrandLogos();
 requestAnimationFrame(loop);
 
-if(location.search.indexOf('debug')!==-1){ window.__hs={ forceLevel:()=>{if(state==='playing')gainXp(player.xpNext);}, boss:()=>spawnBoss(), spawn:(k,dx,dy)=>spawnEnemy(k,player.x+(dx||100),player.y+(dy||0)), magnet:()=>spawnMagnet(), magnetFar:()=>{gems.push({x:player.x+150,y:player.y,r:16,xp:0,type:'magnet',vx:0,vy:0,pulled:false});}, eth:(n)=>{ethBank+=(n||50);updateShopUI();}, ethDrop:()=>{gems.push({x:player.x+120,y:player.y,r:9,xp:1,type:'eth',vx:0,vy:0,pulled:false});}, give:(k)=>{player.weapons[k]={perks:{},t:0,ang:0,evo:false,side:1};recalc();}, gems:()=>gems.length, buff:()=>{player.buffT=8;}, flood:(n)=>{for(let i=0;i<(n||300);i++)gems.push({x:player.x+rand(-600,600),y:player.y+rand(-600,600),r:6,xp:1,type:'hex',vx:0,vy:0,pulled:false});}, killboss:()=>{if(boss){boss.hp=0;killEnemy(boss);}}, die:()=>{player.hp=0;gameOver();}, maxHp:()=>player.maxHp, save:()=>SAVE, setTime:(t)=>{time=t;}, cam:()=>({zoom:camZoom,x:Math.round(cam.x),y:Math.round(cam.y),biome:biomeNow().n}), buy:(k)=>buyUpgrade(k), shopState:()=>({eth:ethBank,shop:player.shop,speed:player.speed,dmgMul:player.dmgMul,maxHp:player.maxHp}), setOrbs:(n)=>{player.weapons.hexstake.orbitBonus=n;}, getOrbs:()=>{const w=player.weapons.hexstake;return{bonus:w.orbitBonus||0,cnt:Math.round(wstat(WEAPONS.hexstake,w).cnt)};},
+if(location.search.indexOf('debug')!==-1){ window.__hs={ forceLevel:()=>{if(state==='playing')gainXp(player.xpNext);}, boss:()=>spawnBoss(), spawn:(k,dx,dy)=>spawnEnemy(k,player.x+(dx||100),player.y+(dy||0)), magnet:()=>spawnMagnet(), magnetFar:()=>{gems.push({x:player.x+150,y:player.y,r:16,xp:0,type:'magnet',vx:0,vy:0,pulled:false});}, eth:(n)=>{ethBank+=(n||50);updateShopUI();}, ethDrop:()=>{gems.push({x:player.x+120,y:player.y,r:9,xp:1,type:'eth',vx:0,vy:0,pulled:false});}, give:(k)=>{player.weapons[k]={perks:{},t:0,ang:0,evo:false,side:1};recalc();}, gems:()=>gems.length, buff:()=>{player.buffT=8;}, flood:(n)=>{for(let i=0;i<(n||300);i++)gems.push({x:player.x+rand(-600,600),y:player.y+rand(-600,600),r:6,xp:1,type:'hex',vx:0,vy:0,pulled:false});}, killboss:()=>{if(boss){boss.hp=0;killEnemy(boss);}}, die:()=>{player.hp=0;gameOver();}, maxHp:()=>player.maxHp, save:()=>SAVE, setTime:(t)=>{time=t;}, drops:()=>{for(let i=0;i<12;i++){const a=i/12*TAU; dropGem(player.x+Math.cos(a)*175,player.y+Math.sin(a)*175,2,i%3===0?'gem':(i%3===1?'hex':'heart'));}}, cam:()=>({zoom:camZoom,x:Math.round(cam.x),y:Math.round(cam.y),biome:biomeNow().n}), buy:(k)=>buyUpgrade(k), shopState:()=>({eth:ethBank,shop:player.shop,speed:player.speed,dmgMul:player.dmgMul,maxHp:player.maxHp}), setOrbs:(n)=>{player.weapons.hexstake.orbitBonus=n;}, getOrbs:()=>{const w=player.weapons.hexstake;return{bonus:w.orbitBonus||0,cnt:Math.round(wstat(WEAPONS.hexstake,w).cnt)};},
   snapshot:()=>({state,level:player.level,kills,wave,weapons:Object.keys(player.weapons).length,passives:Object.keys(player.passives).length,enemies:enemies.length}) }; }
 })();
