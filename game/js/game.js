@@ -327,6 +327,7 @@ let time,kills,hexCollected,gemCollected,wave,spawnTimer,screenShake,lastTs=0,po
 let ethBank=0, ethEarned=0, bossKills=0, runKinds={};
 let hitStop=0; function hitStopFor(s){ if(s>hitStop)hitStop=s; }
 let bossIntro=null, heartT=0, slowmo=0, flash=null, storyBeat=null;
+let surgeT=0, surgeN=0, surgeActive=0;
 function screenFlash(color,dur){ flash={c:color,t:dur,max:dur}; }
 let bossTimer,bossCount,boss,combo,comboT,rerolls;
 let quipT=0;
@@ -372,10 +373,11 @@ function newRun(){
     crit:0.05,critMul:2,leech:0,armor:0,luck:0,dodge:0,thorns:0,revives:(SAVE.meta.revive||0),berserk:0,buffT:0,buffDmg:1};
   enemies=[];bullets=[];ebullets=[];gems=[];particles=[];floaters=[];novas=[];beams=[];
   zones=[];mines=[];turrets=[];chains=[];lobs=[];whips=[];
-  time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;ethBank=0;ethEarned=0;bossKills=0;runKinds={};hitStop=0;bossIntro=null;heartT=0;slowmo=0;flash=null;storyBeat=null;achQueue=[];biomeIdx=0;camZoom=baseZoom();camZoomT=camZoom;camLook={x:0,y:0};VW=W/camZoom;VH=H/camZoom;cam.x=player.x-VW/2;cam.y=player.y-VH/2;
+  time=0;kills=0;hexCollected=0;gemCollected=0;wave=1;spawnTimer=0;screenShake=0;ethBank=0;ethEarned=0;bossKills=0;runKinds={};hitStop=0;bossIntro=null;heartT=0;slowmo=0;flash=null;storyBeat=null;surgeT=48;surgeN=0;surgeActive=0;achQueue=[];biomeIdx=0;camZoom=baseZoom();camZoomT=camZoom;camLook={x:0,y:0};VW=W/camZoom;VH=H/camZoom;cam.x=player.x-VW/2;cam.y=player.y-VH/2;
   bossTimer=BOSS_INTERVAL;bossCount=0;boss=null;combo=0;comboT=0;rerolls=3+(SAVE.meta.reroll||0);
   potionRespawn=0;
-  recalc(); for(let i=0;i<7;i++) spawnEnemy('fud'); spawnPotion(); updateShopUI();
+  recalc(); const seed=(SAVE.meta.seed||0); for(let i=0;i<seed;i++){ player.level++; player.xpNext=Math.floor(5+player.level*3.6+player.level*player.level*0.6); }
+  for(let i=0;i<7;i++) spawnEnemy('fud'); spawnPotion(); updateShopUI();
 }
 function spawnPotion(){ const a=rand(0,TAU),d=rand(90,170);
   gems.push({x:clamp(player.x+Math.cos(a)*d,20,WORLD.w-20),y:clamp(player.y+Math.sin(a)*d,20,WORLD.h-20),r:12,xp:0,type:'potion',vx:0,vy:0,pulled:false}); }
@@ -403,9 +405,9 @@ function recalc(){ const p=player,P=p.passives;
   p.leech=(P.leech||0)*0.025+(P.vamplord||0)*0.03+(M.leech||0)*0.004+(CH.leech||0);
   p.luck=(P.luck||0)*0.10+(M.luck||0)*0.03+(CH.luck||0);
   p.dodge=(P.dodge||0)*0.04+(M.dodge||0)*0.015;
-  p.thorns=(P.thorns||0)*0.20;
-  p.berserk=(P.greeddmg||0)*0.25;
-  p.execute=(P.executioner||0)*0.04;
+  p.thorns=(P.thorns||0)*0.20+(M.thorns||0)*0.03;
+  p.berserk=(P.greeddmg||0)*0.25+(M.berserk||0)*0.06;
+  p.execute=(P.executioner||0)*0.04+(M.execute||0)*0.02;
 }
 
 // ---------- input ----------
@@ -466,6 +468,18 @@ function updateThreat(){ let t='warmup';
   else if(time>150)t='heating up'; else if(time>60)t='rising'; else t='warmup';
   document.getElementById('threat').textContent=t; }
 function updateSpawning(dt){
+  // ---- HORDE SURGE: timed pressure spikes that give a run its rhythm ----
+  if(surgeActive>0)surgeActive-=dt;
+  surgeT-=dt;
+  if(surgeT<=0){ surgeN++; surgeT=Math.max(30,48-surgeN*1.5);
+    const heavy=surgeN%3===0;                                  // every 3rd surge is a big one
+    const n=Math.round((heavy?26:15)+surgeN*2.2), ring=Math.max(VW||W,VH||H)*0.62;
+    const a0=rand(0,TAU);
+    for(let i=0;i<n;i++){ const a=a0+i/n*TAU+rand(-0.12,0.12), d=ring+rand(0,90);
+      spawnEnemy(rollEnemyKind(), clamp(player.x+Math.cos(a)*d,20,WORLD.w-20), clamp(player.y+Math.sin(a)*d,20,WORLD.h-20)); }
+    surgeActive=heavy?5:3.2;
+    toast(heavy?'☠ MARKET CRASH INCOMING':'⚠ SELL PRESSURE','#ff3b5c');
+    screenFlash('255,59,92',0.3); screenShake=Math.max(screenShake,heavy?16:10); sfx('boss'); }
   spawnTimer-=dt; const interval=Math.max(0.18,0.85-time/200);
   const cap=Math.min(130,68+time*0.24); // hard limit on on-screen enemies (also a perf ceiling)
   if(spawnTimer<=0 && enemies.length<cap){ spawnTimer=interval; const batch=1+Math.floor(time/28);
@@ -637,7 +651,7 @@ function hurt(dmg){ const p=player; if(p.invuln>0)return; if(Math.random()<p.dod
   floater('-'+Math.round(dmg),p.x,p.y-20,'#ff3b5c',false); sfx('hurt');
   if(p.hp<=0){ if(p.revives>0){ p.revives--; p.hp=p.maxHp*0.5; p.invuln=1.5; toast('🔁 SECOND SACRIFICE','#ffcf33'); burst(p.x,p.y,'#ffcf33',40); }
     else { p.hp=0; gameOver(); } } }
-function heal(a){ player.hp=Math.min(player.maxHp,player.hp+a); }
+function heal(a){ a*=1+((SAVE.meta&&SAVE.meta.bailout)||0)*0.12; player.hp=Math.min(player.maxHp,player.hp+a); }
 
 // ---------- enemies AI ----------
 function updateEnemies(dt){ const p=player;
@@ -1194,8 +1208,7 @@ function updateHud(){ const p=player;
   document.getElementById('timer').textContent=fmtTime(time);
   wave=1+Math.floor(time/12); document.getElementById('wave-num').textContent=wave;
   document.getElementById('cur-kills').textContent=kills.toLocaleString();
-  document.getElementById('cur-hex').textContent=hexCollected.toLocaleString();
-  document.getElementById('cur-gem').textContent=gemCollected.toLocaleString();
+  const xl=document.getElementById('xp-lv'); if(xl)xl.textContent=p.level;
   document.getElementById('cur-eth').textContent=Math.floor(ethBank).toLocaleString();
   updateShopUI();
   document.getElementById('st-hp').textContent=Math.round(p.maxHp);
@@ -1234,7 +1247,7 @@ function startGame(){ const sb=document.getElementById('start-bg'); if(sb){ try{
 function gameOver(){ state='over'; sfx('death');
   // ---- bank meta currency: unspent ETH + a survival bonus ----
   const kk=SAVE.kindKills||(SAVE.kindKills={}); for(const k in runKinds)kk[k]=(kk[k]||0)+runKinds[k];
-  const bonus=Math.floor(time/30)+bossKills*5, banked=Math.round((Math.floor(ethBank)+bonus)*curAsc().reward);
+  const bonus=Math.floor(time/30)+bossKills*8, banked=Math.round((Math.floor(ethBank)+bonus)*curAsc().reward*(1+(SAVE.meta.diamond||0)*0.10));
   SAVE.eth+=banked;
   const st=SAVE.stats; st.runs++; st.kills+=kills; st.bosses+=bossKills; st.ethTotal+=ethEarned; st.playTime+=time;
   if(time>st.bestTime)st.bestTime=time; if(wave>st.bestWave)st.bestWave=wave;
@@ -1295,26 +1308,32 @@ function saveGame(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE)); }
 // permanent upgrades bought with banked ETH between runs
 const META={
   // ── OFFENCE ──
-  power:    {g:'OFFENCE', n:'Damage',      i:'⚔', d:'+4% attack damage',      max:15,base:12, grow:1.42},
-  haste:    {g:'OFFENCE', n:'Attack Speed',i:'🔥',d:'+3% attack speed',       max:12,base:16, grow:1.45},
-  crit:     {g:'OFFENCE', n:'Crit Chance', i:'✷', d:'+1.5% crit chance',      max:12,base:18, grow:1.45},
-  critdmg:  {g:'OFFENCE', n:'Crit Damage', i:'💥',d:'+8% crit damage',        max:10,base:20, grow:1.48},
-  area:     {g:'OFFENCE', n:'Area',        i:'⭕',d:'+3% attack size',        max:10,base:18, grow:1.45},
-  proj:     {g:'OFFENCE', n:'Projectiles', i:'🎯',d:'+1 projectile',          max:3, base:120,grow:2.20},
+  power:    {g:'OFFENCE', n:'Leverage',      i:'⚔', d:'+4% attack damage',        max:15,base:12, grow:1.42},
+  haste:    {g:'OFFENCE', n:'Order Flow',    i:'🔥',d:'+3% attack speed',         max:12,base:16, grow:1.45},
+  crit:     {g:'OFFENCE', n:'Alpha',         i:'✷', d:'+1.5% crit chance',        max:12,base:18, grow:1.45},
+  critdmg:  {g:'OFFENCE', n:'Liquidation',   i:'💥',d:'+8% crit damage',          max:10,base:20, grow:1.48},
+  area:     {g:'OFFENCE', n:'Market Cap',    i:'⭕',d:'+3% attack size',          max:10,base:18, grow:1.45},
+  execute:  {g:'OFFENCE', n:'Margin Call',   i:'📉',d:'Execute enemies under +2% HP',max:8,base:26,grow:1.52},
+  berserk:  {g:'OFFENCE', n:'Desperation',   i:'🩻',d:'+6% damage while under 40% HP',max:8,base:24,grow:1.50},
+  proj:     {g:'OFFENCE', n:'Diversify',     i:'🎯',d:'+1 projectile',            max:3, base:120,grow:2.20},
   // ── DEFENCE ──
-  vitality: {g:'DEFENCE', n:'Vitality',    i:'❤', d:'+12 max HP',             max:15,base:10, grow:1.40},
-  armor:    {g:'DEFENCE', n:'Plating',     i:'🛡',d:'+1 armor',               max:12,base:16, grow:1.46},
-  regen:    {g:'DEFENCE', n:'Regeneration',i:'✚', d:'+0.25 HP/sec',           max:10,base:22, grow:1.48},
-  dodge:    {g:'DEFENCE', n:'Evasion',     i:'💨',d:'+1.5% dodge chance',     max:10,base:20, grow:1.48},
-  leech:    {g:'DEFENCE', n:'Lifesteal',   i:'🩸',d:'+0.4% damage as heal',   max:10,base:24, grow:1.50},
-  revive:   {g:'DEFENCE', n:'Second Life', i:'🔄',d:'Revive once per run',    max:2, base:200,grow:2.50},
+  vitality: {g:'DEFENCE', n:'Cold Storage',  i:'❤', d:'+12 max HP',               max:15,base:10, grow:1.40},
+  armor:    {g:'DEFENCE', n:'Multisig',      i:'🛡',d:'+1 armor',                 max:12,base:16, grow:1.46},
+  regen:    {g:'DEFENCE', n:'Staking Yield', i:'✚', d:'+0.25 HP/sec',             max:10,base:22, grow:1.48},
+  dodge:    {g:'DEFENCE', n:'Slippage',      i:'💨',d:'+1.5% dodge chance',       max:10,base:20, grow:1.48},
+  leech:    {g:'DEFENCE', n:'Rehypothecate', i:'🩸',d:'+0.4% damage as heal',     max:10,base:24, grow:1.50},
+  thorns:   {g:'DEFENCE', n:'Slashing',      i:'⚡',d:'Reflect 3% of enemy max HP',max:8, base:26, grow:1.52},
+  bailout:  {g:'DEFENCE', n:'Bailout',       i:'💊',d:'+12% healing received',    max:8, base:18, grow:1.46},
+  revive:   {g:'DEFENCE', n:'Hard Fork',     i:'🔄',d:'Revive once per run',      max:2, base:200,grow:2.50},
   // ── UTILITY ──
-  swift:    {g:'UTILITY', n:'Swiftness',   i:'⚡',d:'+2% move speed',         max:12,base:12, grow:1.42},
-  greed:    {g:'UTILITY', n:'Greed',       i:'💰',d:'+6% XP gained',          max:12,base:14, grow:1.44},
-  magnet:   {g:'UTILITY', n:'Magnetism',   i:'🧲',d:'+10% pickup range',      max:10,base:12, grow:1.42},
-  luck:     {g:'UTILITY', n:'Luck',        i:'🍀',d:'+3% rare drop chance',   max:10,base:20, grow:1.46},
-  income:   {g:'UTILITY', n:'ETH Income',  i:'Ξ', d:'+8% ETH from enemies',   max:10,base:22, grow:1.48},
-  reroll:   {g:'UTILITY', n:'Rerolls',     i:'🎲',d:'+1 level-up reroll',     max:5, base:40, grow:1.70}
+  swift:    {g:'UTILITY', n:'Low Latency',   i:'🛰',d:'+2% move speed',           max:12,base:12, grow:1.42},
+  greed:    {g:'UTILITY', n:'Airdrop',       i:'🪂',d:'+6% XP gained',            max:12,base:14, grow:1.44},
+  magnet:   {g:'UTILITY', n:'Whitelist',     i:'🧲',d:'+10% pickup range',        max:10,base:12, grow:1.42},
+  luck:     {g:'UTILITY', n:'Insider Info',  i:'🍀',d:'+3% rare drop chance',     max:10,base:20, grow:1.46},
+  income:   {g:'UTILITY', n:'Mining Rig',    i:'Ξ', d:'+8% ETH from enemies',     max:10,base:22, grow:1.48},
+  diamond:  {g:'UTILITY', n:'Diamond Hands', i:'💎',d:'+10% ETH banked on death', max:10,base:26, grow:1.50},
+  seed:     {g:'UTILITY', n:'Seed Round',    i:'🌱',d:'Begin each run 1 level up',max:4, base:60, grow:1.85},
+  reroll:   {g:'UTILITY', n:'Due Diligence', i:'🎲',d:'+1 level-up reroll',       max:5, base:40, grow:1.70}
 };
 const META_GROUPS=['OFFENCE','DEFENCE','UTILITY'];
 /* =========================================================================
@@ -1552,6 +1571,6 @@ document.getElementById('reroll-btn').addEventListener('click',doReroll);
 renderBrandLogos();
 requestAnimationFrame(loop);
 
-if(location.search.indexOf('debug')!==-1){ window.__hs={ forceLevel:()=>{if(state==='playing')gainXp(player.xpNext);}, boss:()=>spawnBoss(), spawn:(k,dx,dy)=>spawnEnemy(k,player.x+(dx||100),player.y+(dy||0)), magnet:()=>spawnMagnet(), magnetFar:()=>{gems.push({x:player.x+150,y:player.y,r:16,xp:0,type:'magnet',vx:0,vy:0,pulled:false});}, eth:(n)=>{ethBank+=(n||50);updateShopUI();}, ethDrop:()=>{gems.push({x:player.x+120,y:player.y,r:9,xp:1,type:'eth',vx:0,vy:0,pulled:false});}, give:(k)=>{player.weapons[k]={perks:{},t:0,ang:0,evo:false,side:1};recalc();}, gems:()=>gems.length, buff:()=>{player.buffT=8;}, flood:(n)=>{for(let i=0;i<(n||300);i++)gems.push({x:player.x+rand(-600,600),y:player.y+rand(-600,600),r:6,xp:1,type:'hex',vx:0,vy:0,pulled:false});}, killboss:()=>{if(boss){boss.hp=0;killEnemy(boss);}}, die:()=>{player.hp=0;gameOver();}, maxHp:()=>player.maxHp, save:()=>SAVE, setTime:(t)=>{time=t;}, drops:()=>{for(let i=0;i<12;i++){const a=i/12*TAU; dropGem(player.x+Math.cos(a)*175,player.y+Math.sin(a)*175,2,i%3===0?'gem':(i%3===1?'hex':'heart'));}}, cam:()=>({zoom:camZoom,x:Math.round(cam.x),y:Math.round(cam.y),biome:biomeNow().n}), buy:(k)=>buyUpgrade(k), shopState:()=>({eth:ethBank,shop:player.shop,speed:player.speed,dmgMul:player.dmgMul,maxHp:player.maxHp}), setOrbs:(n)=>{player.weapons.hexstake.orbitBonus=n;}, getOrbs:()=>{const w=player.weapons.hexstake;return{bonus:w.orbitBonus||0,cnt:Math.round(wstat(WEAPONS.hexstake,w).cnt)};},
+if(location.search.indexOf('debug')!==-1){ window.__hs={ forceLevel:()=>{if(state==='playing')gainXp(player.xpNext);}, boss:()=>spawnBoss(), spawn:(k,dx,dy)=>spawnEnemy(k,player.x+(dx||100),player.y+(dy||0)), magnet:()=>spawnMagnet(), magnetFar:()=>{gems.push({x:player.x+150,y:player.y,r:16,xp:0,type:'magnet',vx:0,vy:0,pulled:false});}, eth:(n)=>{ethBank+=(n||50);updateShopUI();}, ethDrop:()=>{gems.push({x:player.x+120,y:player.y,r:9,xp:1,type:'eth',vx:0,vy:0,pulled:false});}, give:(k)=>{player.weapons[k]={perks:{},t:0,ang:0,evo:false,side:1};recalc();}, gems:()=>gems.length, buff:()=>{player.buffT=8;}, flood:(n)=>{for(let i=0;i<(n||300);i++)gems.push({x:player.x+rand(-600,600),y:player.y+rand(-600,600),r:6,xp:1,type:'hex',vx:0,vy:0,pulled:false});}, killboss:()=>{if(boss){boss.hp=0;killEnemy(boss);}}, die:()=>{player.hp=0;gameOver();}, maxHp:()=>player.maxHp, save:()=>SAVE, setTime:(t)=>{time=t;}, surge:()=>{surgeT=0.01;}, surgeInfo:()=>({t:Math.round(surgeT),n:surgeN}), drops:()=>{for(let i=0;i<12;i++){const a=i/12*TAU; dropGem(player.x+Math.cos(a)*175,player.y+Math.sin(a)*175,2,i%3===0?'gem':(i%3===1?'hex':'heart'));}}, cam:()=>({zoom:camZoom,x:Math.round(cam.x),y:Math.round(cam.y),biome:biomeNow().n}), buy:(k)=>buyUpgrade(k), shopState:()=>({eth:ethBank,shop:player.shop,speed:player.speed,dmgMul:player.dmgMul,maxHp:player.maxHp}), setOrbs:(n)=>{player.weapons.hexstake.orbitBonus=n;}, getOrbs:()=>{const w=player.weapons.hexstake;return{bonus:w.orbitBonus||0,cnt:Math.round(wstat(WEAPONS.hexstake,w).cnt)};},
   snapshot:()=>({state,level:player.level,kills,wave,weapons:Object.keys(player.weapons).length,passives:Object.keys(player.passives).length,enemies:enemies.length}) }; }
 })();
